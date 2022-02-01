@@ -1,0 +1,61 @@
+<html theme="dark" data-theme-mode="1">
+  <head>
+    <meta id="theme-color" name="theme-color" content="#3C3C3C"></meta>
+    <title>Aardvark</title>
+    <script src="https://CSS-Library.hg0428.repl.co/script.js"></script>
+    <link rel="stylesheet" href="/monaco/dev/vs/editor/editor.main.css" />
+     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="translucent">
+    <meta name="apple-mobile-web-app-title" content="AdkCode">
+    <link rel="apple-touch-icon" href="/imgs/logo.png">
+    <link rel="stylesheet" href="/css/fonts.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/xterm/css/xterm.css">
+    <script src="/xterm/lib/xterm.js"></script>
+    <script src="/xterm/addons/fit/xterm-addon-fit.js"></script>
+    <script src="/js/preferences.js"></script> <!-- The localStorage/prefs script file-->
+  </head>
+  <body>
+    <nav>
+      <ul id="topbar">
+        <li><img src="/imgs/aardvark.svg" alt="aardvark" id="icon"></li>
+      </ul>
+      <ul id="topbar-options"></ul>
+    </nav>
+
+    <main id="ide">
+      <div id="sidebar">
+        <div id="sidebar-items">
+          <div class="sidebar-item selected" id="Sidebar-Files">
+            <img src="/imgs/files-selected.svg" alt="Files" >
+          </div>
+          <div class="sidebar-item" id="Sidebar-Settings">
+            <img src="/imgs/settings.svg" alt="Settings" >
+          </div>
+        </div>
+        <div id="files"></div>
+        <div id="settings">
+          Please note that version selection is not yet working.
+          <select name="Version" id="cars">
+            <option value="adk">Adk 1.0 Compiler (default)</option>
+            <option value="interpret">Aardvark 1.0 Interpretter</option>
+            <option value="python">Aardvark 0.9</option>
+          </select>
+        </div>
+      </div>
+      <div id="layout">
+        <div id="editor"></div>
+        <div id="terminal"><button class="termbutton" id="clearbtn">X</button></div>
+      </div>
+    </main>
+
+    <script src="/monaco/dev/vs/loader.js"></script>
+    <script src="/js/editor/terminal.js"></script> <!-- The main script file -->
+    <script src="/js/editor/aardvark.js"></script> <!-- Language code -->
+    <script src="/js/editor/script.js"></script> <!-- The main script file -->
+    <script src="/js/editor/loader.js"></script> <!-- Initialize Monaco -->
+    <script src="/js/editor/filetree.js"></script> <!-- The filetree script file -->
+    <script src="/js/editor/topbar.js"></script> <!-- The topbar script file -->
+  </body>
+</html>
+
