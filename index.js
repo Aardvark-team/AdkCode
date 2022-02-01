@@ -12,6 +12,6 @@ app.use("/xterm", express.static("node_modules/xterm"));
 app.use("/xterm/addons/fit", express.static("node_modules/xterm-addon-fit/lib"));
 
 app.listen(port, _ => {
-  console.clear();
-  console.log("Server listening on port %s", port);
+	console.clear();
+	console.log("Server listening on port %s", port);
 })
