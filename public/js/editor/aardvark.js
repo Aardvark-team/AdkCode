@@ -438,7 +438,7 @@ function getAdkExampleCode2() {
     '   funct helloWorld() {',
     "       output('helloWorld')",
     "       i = 0",
-    "       if i==0 {",
+    "       if i == 0 {",
     "           output('i is 0!')",
     "       }",
     "   }",
@@ -451,10 +451,10 @@ function getAdkExampleCode3() {
     '   ~init {',
     "       this.x = 0",
     "       this.y = 0",
-    "       this.z=0",
+    "       this.z = 0",
     "   }",
     "   funct moveX(amt) {",
-    "       this.x+=amt",
+    "       this.x += amt",
     "   }",
     "}"
   ].join('\n');

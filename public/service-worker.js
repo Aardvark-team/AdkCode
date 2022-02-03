@@ -19,7 +19,7 @@ self.addEventListener('activate', e => self.clients.claim());
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(cacheName)
-    .then(cache => cache.addAll(filesToCache))
+    .then(cache => cache.addAll(filestoCache))
   );
 });
 

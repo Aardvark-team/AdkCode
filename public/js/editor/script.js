@@ -1,6 +1,6 @@
 const pressedKeys = {};
 const editorEl = document.getElementById('editor');
-let editor;
+var editor;
 
 getUserPreferences();
 
@@ -9,13 +9,14 @@ function editorLoaded() {
   loadTerminal();
 
   editor = monaco.editor.create(editorEl, {
-    theme: 'monokaiAardvark', // where is this theme coming from
-    //aardvark.js just before the end of the file
+    fontFamily: 'JetBrains Mono',
+    fontSize: '12px',
+    theme: 'monokaiAardvark',
     value: getAdkExampleCode1(),
     language: 'Aardvark'
   });
   
-  initRoot(editor);//THIS THIS IS REFERNCING THE OTHER SCRIPT
+  initRoot(editor);// THIS IS REFERNCING THE OTHER SCRIPT
 
   window.monacoEditor = editor
 
@@ -38,7 +39,7 @@ function editorLoaded() {
 }
 
 var ext;
-var running=false;
+var running = false;
 async function runCode(code) {
   /*
 ext = currentfile.name.split(".").reverse()[0]

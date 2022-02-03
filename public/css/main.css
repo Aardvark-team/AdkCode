@@ -20,6 +20,11 @@
   --sidebar-bgcolor: rgb(39, 39, 39);
   --sidebar-items-bgcolor: rgb(39, 39, 39);
 }
+input[type=checkbox] {
+  position:relative;
+  top:8px;
+  margin-left:10px;
+}
 .termbutton {
   position:relative;
   right:10px;
@@ -220,7 +225,11 @@ html, body {
   background-color: var(--sidebar-items-bgcolor);
 }
 #settings {
+  border-left: var(--border-width) solid var(--border-color);
+  background-color: var(--sidebar-items-bgcolor);
   display:none;
+  padding:10px;
+  padding-right:10px !important;
 }
 .sidebar-item {
   width: 100%;
@@ -276,6 +285,10 @@ html, body {
 
 .file-folder {
 
+}
+
+.btnLift {
+  cursor: pointer !important;
 }
 
 .folder-hidden {

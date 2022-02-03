@@ -3,7 +3,6 @@ const filebtn = document.getElementById('Sidebar-Files');
 const settingsbtn = document.getElementById('Sidebar-Settings');
 const themecolor = document.getElementById("theme-color");
 var currentMenu = "";
-//help, I get error from monaco illigal theme base
 const topbar = document.getElementById("topbar");
 const tbOptions = document.getElementById("topbar-options");
 icon.onclick = function() {
@@ -17,10 +16,13 @@ function themeSwitch(change = true) {
     if (currenTheme === 1) currenTheme = 2;
     else currenTheme = 1;
   }
+  if (!window.monacoEditor)
+    return;
+    
   switch (currenTheme) {
     case 2:
       document.documentElement.setAttribute("data-theme-mode", "2");
-      window.monacoEditor._themeService.setTheme('theme2');
+      window.monacoEditor.setTheme('theme2');
       term.setOption('theme', {
         background: '#242424'
       });
@@ -29,7 +31,7 @@ function themeSwitch(change = true) {
       break;
     case 1:
       document.documentElement.setAttribute("data-theme-mode", "1");
-      window.monacoEditor._themeService.setTheme('monokaiAardvark');
+      window.monacoEditor.setTheme('monokaiAardvark');
       term.setOption('theme', {
         background: '#1d1d1d'
       });
