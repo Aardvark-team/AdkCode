@@ -1,0 +1,48 @@
+#editor {
+  height:250px;
+  border:1px solid white;
+}
+#json {
+  height:250px;
+}
+.header {
+  color:rgb(255, 100, 110);
+}
+#rules {
+  display:none;
+  width:30%;
+  text-align:left;
+  padding-left:50px;
+  color:rgb(125, 175, 255);
+  font-size:17px;
+  font-family:Arial, arial, "arial", Helvetica, helvetica, "helvetica";
+}
+#rules ul {
+  color:rgb(220, 240, 250);
+}
+#rules ul ul {
+  color: white;
+}
+#rulesbtn {
+  font-size:20px;
+  cursor:pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+label {
+  font-size:20px;
+}
+input[type=color] {
+  position:relative;
+  top:2.5px;
+  margin-left:5;
+}
+.section {
+  background:rgb(100,100,100);
+  width: fit-content;
+  height: fit-content;
+  padding:20px;
+  border-radius:10px;
+}

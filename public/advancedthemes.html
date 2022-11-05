@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html theme="dark">
+  <head>
+    <title>Build A Theme – AdkCode</title>
+    <script src="https://CSS-Library.hg0428.repl.co/script.js"></script>
+    <link rel="stylesheet" href="/css/create.css">
+    <script type="text/javascript" src="https://unpkg.com/jsonic@1.0.1/jsonic.js"></script>
+  </head>
+  <body>
+    <center>
+    <h1>Advanced Themes</h1>
+    Use <a href="https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.IStandaloneThemeData.html">THIS</a> to learn how.<br/><br/>
+    <h5 id="rulesbtn">Rules ▼</h5>
+    <ul id="rules">
+      <li>operator</li>
+      <li>identifier</li>
+      <li>declaration</li>
+      <li>callFunction<ul>
+        <li>special<ul>
+          <li>init</li>
+          <li>operator</li>
+          <li>ref</li>
+          <li>delete</li>
+          <li>call</li>
+        </ul></li>
+      </ul></li>
+      <li>comment<ul>
+        <li>comment.doc</li>
+      </ul></li>
+      <li>number<ul>
+        <li>number.float</li>
+        <li>number.hex</li>
+        <li>number.octal</li>
+        <li>number.binary</li>
+      </ul></li>
+      <li>string<ul>
+        <li>string.escape</li>
+        <li>string.escape.invalid</li>
+        <li>string.invalid</li>
+      </ul></li>
+      <li>regexp<ul>
+        <li>regexp.invalid</li>
+        <li>regexp.escape</li>
+        <li>regexp.escape.control</li>
+      </ul></li>
+      <li>keyword<ul>
+        <li>keyword.directive<ul>
+          <li>keyword.directive.include</li>
+          <li>keyword.directive.jump</li>
+          <li>keyword.directive.define</li>
+        </ul></li>
+        <li>keyword.type</li>
+        <li>keyword.other</li>
+      </ul></li>
+      <li>delimiter<ul>
+        <li>delimiter.bracket</li>
+      </ul></li>
+    </ul>
+    <h4 id="error" class="header"></h4>
+    <textarea id="json" placeholder="Enter your theme here" style="width:75%;min-width:100px;min-height:200px;height:40vh;">
+base: 'vs-dark',
+inherit: true,
+rules: [
+  { token: 'comment', foreground: '797979', fontStyle: 'italic' },
+],
+colors: {
+  'editor.background': '#262626',
+}</textarea>
+    <h3 class="header">Name:</h3>
+    <input type="text" required="true" placeholder="Name" id="themeName">
+    <br/>
+    <button class='borderChange' id='advancedThemeSubmit'>Create</button>
+    <br/><br/><h1>Live View:</h1><br/>
+    </center>
+    <div id="editor"></div><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+    <script src="/monaco/dev/vs/loader.js"></script>
+    <script src="/js/liveeditor.js"></script>
+    <script src="/js/editor/loader.js"></script>
+    <script src="/js/editor/aardvark.js"></script>
+    <script src="/js/maketheme.js"></script>
+  </body>
+</html>

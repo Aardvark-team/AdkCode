@@ -3,9 +3,7 @@
   --topbar-bgcolor: rgb(60, 60, 60);
   --topbar-bgcolor-hover: rgba(70, 70, 70, 0.9);
   --topbar-fgcolor: rgb(204, 204, 204);
-  
   --topbar-selection-hover: rgb(9, 71, 113);
-
   --sidebar-items-bgcolor: rgb(35, 35, 35);
   --sidebar-bgcolor: rgb(51, 51, 51);
   --sidebar-bgcolor2: rgb(35, 35, 35);
@@ -20,10 +18,87 @@
   --sidebar-bgcolor: rgb(39, 39, 39);
   --sidebar-items-bgcolor: rgb(39, 39, 39);
 }
+
 input[type=checkbox] {
   position:relative;
   top:8px;
   margin-left:10px;
+}
+.file-menu {
+  position:absolute;
+  top:calc(50% - 9px);
+  right:0;
+  
+}
+.arrow {
+  text-align:right;
+  margin-top:4px;
+  margin-right:7px;
+  font-size:10px;
+}
+#overView {
+  display:none;
+  position:fixed;
+  height:400px;
+  width:400px;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+  z-index:9999;
+  background-color: rgba(41, 41, 41, 0.99);
+  box-shadow:0 0 150px 250px #212121;
+  text-align:center;
+  border-radius:5px;
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  padding:10px;
+}
+#overView button {
+  display:block;
+  font-size:20px;
+  margin:auto;
+}
+#overView #OK {
+  position:absolute;
+  bottom:5px;
+  left:50%;
+  transform: translateX(-50%);
+  font-size:24px;
+}
+#overView a {
+  font-size:14px;
+}
+#fileEditMenu {
+  position:fixed;
+  height:300px;
+  width:140px;
+  top:50px;
+  left:200px;
+  display:none;
+  flex-direction:column;
+  background-color: rgba(51, 51, 51, 0.95);
+  box-shadow:0 0 30px 20px #1f1f1f;
+  z-index:999;
+  user-select: none;
+  -moz-user-select: none;
+  -ms-touch-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  padding-left:0;
+}
+#fileEditMenu li {
+  display:flex;
+  cursor: pointer;
+  font-family: Segoe UI, sans-serif;
+  align-content: center;
+  align-items: center;
+  padding: 5px 0;
+  padding-left: 24px;
+  background-color:rgba(51, 51, 51, 0.96);
+  font-size: 16px;
+}
+#fileEditMenu li:hover {
+  background-color: rgb(100, 100, 100, 0.999);
 }
 .termbutton {
   position:relative;
@@ -88,6 +163,7 @@ html, body {
 }
 
 #terminal {
+  padding: 10px;
   border-top: var(--border-width) solid var(--border-color);
   border-left: var(--border-width) solid var(--border-color);
   background-color: rgb(29,29,29);

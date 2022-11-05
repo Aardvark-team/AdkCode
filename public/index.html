@@ -1,7 +1,7 @@
 <html theme="dark" data-theme-mode="1">
   <head>
     <meta id="theme-color" name="theme-color" content="#3C3C3C"></meta>
-    <title>Aardvark</title>
+    <title>AdkCode</title>
     <script src="https://CSS-Library.hg0428.repl.co/script.js"></script>
     <link rel="stylesheet" href="/monaco/dev/vs/editor/editor.main.css" />
      <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,10 +15,16 @@
     <script src="/xterm/addons/fit/xterm-addon-fit.js"></script>
     <script src="/js/preferences.js"></script> <!-- The localStorage/prefs script file-->
     <link rel="preconnect" href="https://fonts.googleapis.com"> 
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=JetBrains+Mono&family=Press+Start+2P&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=JetBrains+Mono&family=Press+Start+2P&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/jsonic@1.0.1/jsonic.js"></script>
   </head>
   <body>
+    <div id="overView"></div>
+    <ul id="fileEditMenu">
+      <li id="fileEditMenuRename">Rename</li>
+      <li id="fileEditMenuDelete" style="color:red;">Delete</li>
+    </ul>
     <nav>
       <ul id="topbar">
         <li><img src="/imgs/aardvark.svg" alt="aardvark" id="icon"></li>
@@ -69,7 +75,16 @@
           <input type="checkbox" id="settings-fontligs"/><br/>
           Minimap: 
           <input type="checkbox" id="settings-minimap" checked/><br/>
-          <center><button type="submit" class="btnLift" id="settings-save">Save</button></center>
+          <br/>
+          Editor Theme:
+          <select name="Theme" id="settings-theme">
+            <option id="defaulthememode">Default</option>
+            <option value = "hg0428">Hg0428's</option>
+            <option value="vs-dark">VS Dark</option>
+            <option value="hc-black">High Contrast</option>
+          </select><br/>
+          <center><button type="submit" class="btnLift" id="settings-save">Save</button></center><br/>
+          <a href="/themes.html"><button class='borderChange'>Define theme</button></a><br/>
         </div>
       </div>
       <div id="layout">

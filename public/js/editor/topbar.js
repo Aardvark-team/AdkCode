@@ -5,12 +5,40 @@ const themecolor = document.getElementById("theme-color");
 var currentMenu = "";
 const topbar = document.getElementById("topbar");
 const tbOptions = document.getElementById("topbar-options");
+const overView = document.getElementById('overView');
+const overViewOk = document.createElement('button');
+overViewOk.innerText = 'OK';
+overViewOk.id = "OK";
 icon.onclick = function() {
   window.location.href = 'https://aardvark-website.programit.repl.co';
 }
-var currenTheme = 1
+var currenTheme = 1;
 // For topbar selection and options
-
+function setOverView(text, btns, other) {//HERE PRESS THE SHARE THEME
+  //press share themesoory, I am multitasking rn
+  overView.style.display = 'block';
+  overView.innerHTML = text + '<br/>'; //After you type the name, it will call this function
+  let BTNs = [];
+  let OTHERs = [];
+  for (i of other) {
+    let elem = document.createElement(i[0]);
+    elem.innerHTML = i[1];
+    OTHERs.push(elem);
+    overView.innerHTML += '<br/>';
+    overView.append(elem);
+  }
+  for (i of btns) {
+    let btn = document.createElement('button');
+    btn.innerText = i;
+    BTNs.push(btn);
+    overView.append(btn);
+  }
+  overView.append(overViewOk);
+  overViewOk.onclick = function() {
+    overView.style.display = 'none';
+  }
+  return [BTNs, OTHERs];
+}
 function themeSwitch(change = true) {
   if (change) {
     if (currenTheme === 1) currenTheme = 2;
@@ -18,11 +46,11 @@ function themeSwitch(change = true) {
   }
   if (!window.monacoEditor)
     return;
-    
   switch (currenTheme) {
     case 2:
       document.documentElement.setAttribute("data-theme-mode", "2");
-      window.monacoEditor.setTheme('theme2');
+      defaulthememode.value = 'theme2';
+      monaco.editor.setTheme('theme2');
       term.setOption('theme', {
         background: '#242424'
       });
@@ -31,7 +59,8 @@ function themeSwitch(change = true) {
       break;
     case 1:
       document.documentElement.setAttribute("data-theme-mode", "1");
-      window.monacoEditor.setTheme('monokaiAardvark');
+      defaulthememode.value = 'monokaiAardvark';
+      monaco.editor.setTheme('monokaiAardvark');
       term.setOption('theme', {
         background: '#1d1d1d'
       });
@@ -39,19 +68,105 @@ function themeSwitch(change = true) {
       saveUserPreferences();
       break;
   }
+  setOptions();
+}
+
+function saveTheme() {
+
+  let themes = localStorage.getItem("editor-themes") ? localStorage.getItem("editor-themes") : `{"names": [], "themes": [], "advancedThemes": []}`
+
+  try {
+    themes = JSON.parse(themes)
+  }
+  catch (e) {
+    alert("Corrupted themes save.")
+    themes = { names: [], advancedThemes: [], themes: {} }
+  }
+  console.log(themes);
+  let name = prompt(`Enter the theme's name. Currently installed themes: ${themes.names.join(", ")}`)
+
+  if (!themes.names.includes(name)) {
+    alert("Invalid theme name!")
+    return
+  }
+  fetch("/db/save_theme", {
+    method: "POST",
+    body: JSON.stringify({
+      theme: themes.advancedThemes[name]
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("An error occoured while saving your theme. Please try again.")
+        return
+      }
+      setOverView(`Your theme has been saved. <br/><a href="https://adkcode.programit.repl.co/gettheme.html?theme=${data.id}">https://adkcode.programit.repl.co/gettheme.html?theme=${data.id}</a>`);
+      //alert(`Your theme has been saved. <br/><a href="https://adkcode.programit.repl.co/gettheme.html?theme=${data.id}">Link</a>`)
+    })
+}
+function deleteTheme() {
+  let themes = localStorage.getItem("editor-themes") ? localStorage.getItem("editor-themes") : `{"names": [], "themes": [], "advancedThemes": []}`;
+
+  try {
+    themes = JSON.parse(themes);
+  }
+  catch (e) {
+    alert("Corrupted themes save.");
+    themes = { names: [], advancedThemes: [], themes: {} };
+    localStorage.setItem('editor-themes', JSON.stringify(themes));
+    return;
+  }
+  if (!themes.names || !themes.themes || !themes.advancedThemes) {
+    alert("Corrupted themes save.");
+    themes = { names: [], advancedThemes: [], themes: {} };
+    localStorage.setItem('editor-themes', JSON.stringify(themes));
+    return;
+  }
+  console.log(themes);
+  OPtions = '';
+  for (i of themes.names) {
+    OPtions += `<option value="${i}">${i}</option>`
+  }
+  let data = setOverView('Select which theme to delete, then press Delete.', ['Delete'], [['select', OPtions]]);
+  console.log(data);
+  data[0][0].onclick = function() {
+    let v = data[1][0].value;
+    delete themes.advancedThemes[v];
+    themes.names = themes.names.filter(el => el !== v);
+    localStorage.setItem('editor-themes', JSON.stringify(themes));
+    overView.style.display = 'none';
+  }
 }
 const options = [
   {
     name: "File",
     selection: [
-      { text: "New File", action: newFile },
-      { text: "New Folder", action: newFolder }
+      {
+        text: "New File", action: (e) => {
+          let path = prompt("Enter a name for the file or leave empty to cancel:")
+          if (path === '') return;
+          newFile(path);
+        }
+      },
+      {
+        text: "New Folder", action: (e) => {
+          let path = prompt("Enter a name for the folder or leave empty to cancel:")
+          if (path === '') return;
+          newFolder(path);
+        }
+      }
     ]
   },
   {
     name: "Edit",
     selection: [
-      { text: "Find and Replace" },
+      { text: "Find and Replace", action: e => {
+        editor.getAction('find').run();
+      }},
       { text: "Copy" },
       { text: "Cut" },
       { text: "Paste", action: EditPaste }
@@ -70,19 +185,24 @@ const options = [
     selection: [
       { text: "Clear Terminal", action: clearTerm },
       { text: "Reset IDE", action: resetFiles },
-      { text: "Save", action: window.saveFilesystem }
+      { text: "Save", action: () => { window.saveFilesystem(false, true) } }//THIS
     ]
   },
   {
     name: "Run",
     selection: [],
     action: () => editor ? runCode(editor.getValue()) : null
+  },
+  {
+    name: "Themes",
+    selection: [
+      { text: "Share Theme", action: saveTheme },
+      { text: "Delete Theme", action: deleteTheme }
+    ]
   }
 ]
 function closeSidebar(btn, elem, name) {
   ide.style["grid-template-columns"] = "49px auto";
-
-  clearTerm(true);
 
   elem.style.display = "none";
   btn.classList.remove("selected");
@@ -91,7 +211,6 @@ function closeSidebar(btn, elem, name) {
 }
 function openSidebar(btn, elem, name) {
   ide.style["grid-template-columns"] = "calc(100px + 10vw) auto";
-  clearTerm(true);
   btn.classList.add("selected");
   btn.children[0].src = `imgs/${name}-selected.svg`;
 
@@ -196,10 +315,10 @@ function createSelectionItem(text) {
 
 function openSelectionView(items, option) {
   tbOptions.innerHTML = "";
-  if (currentMenu === option.name) {
+  /*if (currentMenu === option.name) {
     tbOptions.style = "";
     return currentMenu = "";
-  }
+  }*/
   for (const item of items) {
     if (typeof item === "object") {
       const { text, action } = item;
@@ -241,7 +360,7 @@ function createTopBarItems() {
     const element = createTopBarItem(name);
 
     if (selection && selection.length > 0) {
-      element.addEventListener("click", openSelectionView.bind(element, selection).bind(element, option));
+      element.addEventListener("mouseenter", openSelectionView.bind(element, selection).bind(element, option));
     }
 
     if (action instanceof Function) {
@@ -257,7 +376,7 @@ createTopBarItems();
 
 
 // Close topbar options selection view
-document.addEventListener("click", ({ clientX, clientY }) => {
+document.addEventListener("mouseover", ({ clientX, clientY }) => {
   const { left, top, width, height } = tbOptions.getBoundingClientRect();
 
   if (clientX < left || clientX > (left + width)) {

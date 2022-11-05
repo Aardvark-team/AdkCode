@@ -1,5 +1,13 @@
 {
   "files": {
+    "plugins-selected.svg.txt": [
+      {
+        "id": "e1dc15de-3d4d-4b72-8616-0e738bc2732e",
+        "line": 1,
+        "version": 3,
+        "index": 0
+      }
+    ],
     "public/js/loader.js": [
       {
         "id": "0a8ee575-3c13-44f7-bf54-5408ff2d5f92",
