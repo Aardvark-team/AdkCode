@@ -1,6 +1,9 @@
 //https://stackoverflow.com/questions/45924485/how-to-create-web-based-terminal-using-xterm-js-to-ssh-into-a-system-on-local-ne
 //Make a bash terminal
 //https://xtermjs.org xterm docs
+const CODE_EXECUTION_API = "aardvark-py-api.programit.repl.co";
+
+
 const term = new Terminal({
   fontFamily: "Monospace",
   theme: {
@@ -8,6 +11,60 @@ const term = new Terminal({
   },
   fontSize: 14
 });
+
+let isProgramRunning = false;
+
+async function checkCodeExecStatus() {
+  try {
+    await fetch(`https://${CODE_EXECUTION_API}`).then(r => r.json());
+    alert("The api is online!");
+  } catch {
+    alert("The api is currently offline. Please try again a bit later.");
+  }
+}
+
+function reconnectToExecApi(isManual) {
+  if (window.AARDVARK_API_WEBSOCKET &&
+    window.AARDVARK_API_WEBSOCKET.readyState === 1)
+    window.AARDVARK_API_WEBSOCKET.close();
+
+  window.AARDVARK_API_WEBSOCKET = new WebSocket(`wss://${CODE_EXECUTION_API}`);
+  window.AARDVARK_API_WEBSOCKET.addEventListener("message", (ev) => {
+    const data = JSON.parse(ev.data);
+
+    if (typeof data.output === "string") {
+      term.write(data.output);
+    }
+
+    if (typeof data.state === "number") {
+      isProgramRunning = data.state === 2;
+
+      if (data.state === 0) {
+        clearLine();
+      }
+    }
+  });
+
+  window.AARDVARK_API_WEBSOCKET.addEventListener("open", () => {
+    if (isManual) window.alert("Connected to the code execution api.");
+  })
+
+  window.AARDVARK_API_WEBSOCKET.addEventListener("close", () => {
+    window.alert("Lost connection to the code execution api. (or didn't even connect)");
+    
+    
+  });
+}
+
+function checkCodeExecLocalStatus() {
+  const status = window.AARDVARK_API_WEBSOCKET &&
+    window.AARDVARK_API_WEBSOCKET.readyState === 1;
+
+  window.alert(`You are${!status ? " not" : ""} connected to the api.`)
+}
+
+reconnectToExecApi();
+
 term.setOption('cursorBlink', true)
 const termEl = document.getElementById("terminal");
 const fitAddon = new FitAddon.FitAddon();
@@ -33,7 +90,10 @@ function loadTerminal() {
 }
 
 function termError(text) {
-  term.write(`\x1b[0;31m${text}\x1b[0m`)
+  term.write(`\x1b[0;31m${text}\x1b[0m`);
+  // Required since current line only gets cleared if processCommands returns 
+  // true. (this gets returned in some places from processCommands)
+  return true;
 }
 let commands = {
   'help': {
@@ -131,6 +191,12 @@ let commands = {
     args: '',
     shortdes: 'Enables ide debug mode.',
     help: 'Prints ide errors to the terminal. '
+  },
+  'adk': {
+    name: 'adk',
+    args: '[run]? [file]',
+    shortdes: 'Runs Aardvark code.',
+    help: 'Use adk to enter the live Aardvark editor. Use adk run file to run a file.'
   }
 }
 
@@ -151,8 +217,16 @@ function processCommands(str) {
   args = args.slice(1);
   if (cmd === 'help') {
     if (args[0]) {
-      let command = commands[args[0]];
-      term.write(`\x1b[1;32m${command.name}\x1b[0m\r\n\x1b[0;31m${command.name} ${command.args}\x1b[0m\r\n\x1b[0;34m${command.shortdes}\x1b[0m\r\n\r\n${command.help}`);
+      if (args[0] === 'adk') {
+        window.AARDVARK_API_WEBSOCKET.send(JSON.stringify({
+          runProgram: window.filesystemToJSON(),
+          command: ['help']
+        }));
+        return false;
+      } else {
+        let command = commands[args[0]];
+        term.write(`\x1b[1;32m${command.name}\x1b[0m\r\n\x1b[0;31m${command.name} ${command.args}\x1b[0m\r\n\x1b[0;34m${command.shortdes}\x1b[0m\r\n\r\n${command.help}`);
+      }
     } else {
       for (let i in commands) {
         i = commands[i];
@@ -175,7 +249,7 @@ function processCommands(str) {
       currentDir = currentDir.split('/').slice(0, -1).join('/');
     } else if (getByName(currentDir + args[0])) {
       currentDir += args[0] + "/";
-    } else { 
+    } else {
       termError(`${currentDir + args[0]} does not exist.`)
     }
   } else if (cmd == 'echo') {
@@ -269,7 +343,7 @@ function processCommands(str) {
     term.write('NOTE: in developer ALPHA testing.\r\nLoading, this may take up to 15 seconds...')
     let f = getByName(args[0]);
     let json = (async () => {
-      const response = await fetch('https://AdkAI.hg0428.repl.co/API/', {
+      const response = await fetch('https://adk-ai.replit.app/API/', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -286,15 +360,27 @@ function processCommands(str) {
       }
       f.content = completion.fullcode;
       openFile(f);
+      clearLine();
     })();
+    return false;
   } else if (cmd === 'debug') {
     if (args.length != 0) return termError(`${cmd} accepts exactly 0 arguments.`);
     window.onerror = function(message, source, lineno, colno, error) {
       term.write(message);
     }
+  } else if (cmd === 'adk') {
+    window.AARDVARK_API_WEBSOCKET.send(JSON.stringify({
+      runProgram: {
+        files: window.filesystemToJSON(),
+        args: args,
+        silenced: true
+      }
+    }));
+    return false;
   } else {
     return termError(`Command "${cmd}" not found.`)
   }
+  return true;
 }
 
 function clearLine() {
@@ -302,6 +388,11 @@ function clearLine() {
   term.write(`\r\n${currentDir} $ `);
 }
 term.onData(data => {
+  if (isProgramRunning) {
+    AARDVARK_API_WEBSOCKET.send(JSON.stringify({ input: data }));
+    return;
+  }
+
   if (data.length === 1) {
     code = data.charCodeAt();
     if (code === 127 && currentLine != '') { //Backspace
@@ -309,8 +400,9 @@ term.onData(data => {
       term.write('\b \b');
     } else if (data === '\n' || data === '\r') {
       term.write('\r\n');
-      processCommands(currentLine);
-      clearLine();
+      
+      let doClear = processCommands(currentLine);
+      if (doClear) clearLine();
     } else if (code === 9) {
       //Tab Autocomplete
       let c = currentLine.split(' ');

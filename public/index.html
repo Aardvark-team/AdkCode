@@ -21,15 +21,15 @@
   </head>
   <body>
     <div id="overView"></div>
-    <ul id="fileEditMenu">
+    <ul id="fileEditMenu" class="popup-menu">
       <li id="fileEditMenuRename">Rename</li>
-      <li id="fileEditMenuDelete" style="color:red;">Delete</li>
+      <li id="fileEditMenuDelete" class="popup-negative">Delete</li>
     </ul>
     <nav>
       <ul id="topbar">
         <li><img src="/imgs/aardvark.svg" alt="aardvark" id="icon"></li>
       </ul>
-      <ul id="topbar-options"></ul>
+      <ul id="topbar-options" class="popup-menu"></ul>
     </nav>
 
     <main id="ide">
@@ -75,6 +75,8 @@
           <input type="checkbox" id="settings-fontligs"/><br/>
           Minimap: 
           <input type="checkbox" id="settings-minimap" checked/><br/>
+          AI (BETA): 
+          <input type="checkbox" id="settings-AI" checked/><br/>
           <br/>
           Editor Theme:
           <select name="Theme" id="settings-theme">
@@ -93,6 +95,7 @@
       </div>
     </main>
 
+    <script src="/socket.io/socket.io.min.js"></script>
     <script src="/monaco/dev/vs/loader.js"></script>
     <script src="/js/editor/terminal.js"></script> <!-- The main script file -->
     <script src="/js/editor/aardvark.js"></script> <!-- Language code -->

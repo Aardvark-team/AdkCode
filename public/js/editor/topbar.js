@@ -199,6 +199,24 @@ const options = [
       { text: "Share Theme", action: saveTheme },
       { text: "Delete Theme", action: deleteTheme }
     ]
+  },
+  {
+    name: "Code Execution",
+    selection: [
+      { text: "Check status", action: checkCodeExecStatus },
+      { text: "Reconnect", action: () => reconnectToExecApi(true) },
+      { text: "Is connected?", action: checkCodeExecLocalStatus }
+    ]
+  },
+  {
+    name: "Cloud",
+    selection: [
+      { text: "Connect to EXA cloud", },
+      { text: "Connect to local instance" },
+      
+      
+      
+    ]
   }
 ]
 function closeSidebar(btn, elem, name) {
@@ -337,6 +355,8 @@ function openSelectionView(items, option) {
   const left = rect.left;
 
   tbOptions.style.setProperty("left", `${left}px`);
+  // This probably shouldn't be hardcoded, but I can't be bothered.
+  tbOptions.style.setProperty("height", `${16 + 21 * items.length}px`);
 }
 
 function createTopBarItem(text) {
@@ -363,6 +383,13 @@ function createTopBarItems() {
       element.addEventListener("mouseenter", openSelectionView.bind(element, selection).bind(element, option));
     }
 
+    if (selection.length === 0) {
+      element.addEventListener("mouseenter", () => {
+          tbOptions.style.setProperty("display", "");
+          tbOptions.style.setProperty("height", "0px");
+      });
+    }
+
     if (action instanceof Function) {
       element.addEventListener("click", action);
     }
@@ -376,7 +403,15 @@ createTopBarItems();
 
 
 // Close topbar options selection view
-document.addEventListener("mouseover", ({ clientX, clientY }) => {
+document.addEventListener("mouseover", ({ clientX, clientY, target }) => {
+  // Much simpler logic
+  if (!target.matches("#topbar-options, #topbar-options *, #topbar, #topbar *")) {
+    tbOptions.style.setProperty("display", "");
+    tbOptions.style.setProperty("height", "0px");
+    return;
+  }
+
+  /*
   const { left, top, width, height } = tbOptions.getBoundingClientRect();
 
   if (clientX < left || clientX > (left + width)) {
@@ -388,4 +423,5 @@ document.addEventListener("mouseover", ({ clientX, clientY }) => {
     tbOptions.style.setProperty("display", "");
     tbOptions.innerHTML = "";
   }
+  */
 });

@@ -1,8 +1,8 @@
 const { Server } = require("socket.io");
 const { createServer } = require("http");
 const express = require("express");
-const server = createServer(app);
 const app = express();
+const server = createServer(app);
 const Path = require("path");
 const cors = require("cors");
 const Database = require("@replit/database")
@@ -14,32 +14,52 @@ const multiplayerSessions = {};
 const socketUserData = {};
 
 io.on("connection", (socket) => {
+  let socketSession = null;
+  
+  socket.on("userData", ({ username }) => {
+    if (username === undefined || username === null)
+      return;
 
-    socket.on("userData", ({ username }) => {
-        if (username === undefined || username === null)
-            return;
-            
-        socketUserData[socket.id] = {
-            username
-        }
-    })
+    socketUserData[socket.id] = { username, cursorX: 0, cursorY: 0, file: null };
+  });
 
-    socket.on("joinSession", ({ sessId }) => {
-        if (socketUserData[socket.id] === undefined || multiplayerSessions[sessId] === undefined)
-            return;
+  socket.on("joinSession", ({ sessId }) => {
+    if (socketUserData[socket.id] === undefined || multiplayerSessions[sessId] === undefined)
+      return;
 
-        let session = multiplayerSessions[sessId];
+    let session = multiplayerSessions[sessId];
 
-        if (session.users.includes(socket.id))
-            return;
+    if (session.users.includes(socket.id))
+      return;
 
-        socket.join(session.id);
-        session.users.push(socket.id);
+    socketSession = session.id;
+    socket.join(session.id);
+    session.users.push(socket.id);
 
-        io.to(session.id)
-            .emit("userJoined", { username: socketUserData[socket.id].username })
-    })
+    io.to(session.id)
+      .emit("userJoined", {
+        username: socketUserData[socket.id].username,
+        cursorX: socketUserData[socket.id].cursorX,
+        cursorY: socketUserData[socket.id].cursorY,
+        file: socketUserData[socket.id].file
+      });
+  });
 
+  socket.on("userUpdate", ({ file, cursorX, cursorY }) => {
+    if (!socketSession) return;
+
+    if (file) socketUserData[socket.id].file = file;
+    if (cursorX) socketUserData[socket.id].cursorX = cursorX;
+    if (cursorY) socketUserData[socket.id].cursorY = cursorY;
+    
+    io.to(socketSession)
+      .emit("userUpdate", ({
+        username: socketUserData[socket.id].username,
+        cursorX: socketUserData[socket.id].cursorX,
+        cursorY: socketUserData[socket.id].cursorY,
+        file: socketUserData[socket.id].file
+      }));
+  });
 })
 
 const port = 65514;

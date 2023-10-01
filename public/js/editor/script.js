@@ -1,5 +1,7 @@
 const pressedKeys = {};
 const editorEl = document.getElementById('editor');
+window.MULTIPLAYER_SOCKET = io();
+
 editorEl.addEventListener("contextmenu", e => e.preventDefault());
 var editor;
 CTRL = false;
@@ -19,6 +21,12 @@ window.addEventListener("keyup", function(e) {
 });
 getUserPreferences();
 
+const multiplayerCursors = {};
+
+window.MULTIPLAYER_SOCKET.on("userJoined", ({ username, cursorX, cursorY }) => {
+  
+})
+
 function editorLoaded() {
   loadAardvark();
   loadTerminal();
@@ -30,7 +38,7 @@ function editorLoaded() {
     value: getAdkExampleCode1(),
     language: 'Aardvark'
   });
-
+  
   initRoot(editor);// THIS IS REFERNCING THE OTHER SCRIPT
 
   window.monacoEditor = editor
@@ -56,12 +64,24 @@ function editorLoaded() {
 var ext;
 var running = false;
 async function runCode(code) {
+  // term.write("adk run main.adk\r\n");
+  
+  window.AARDVARK_API_WEBSOCKET.send(JSON.stringify({
+    runProgram: {
+      files: window.filesystemToJSON()
+    }
+  }));
+
+
   /*
 ext = currentfile.name.split(".").reverse()[0]
   if (!(['adk', 'adkb', 'adkc'].includes(ext))) {
     return term.write("\r\n\u001b[31m"+ext+" file type is not supported!\x1b[0m\r\n");
   }
 */
+  /*
+  // OLD BYTECODE GENERATION
+  
   const form = new FormData();
   form.set("file", code);
   const resp = await fetch("https://AdkCode-API.programit.repl.co/api/", {
@@ -106,6 +126,7 @@ ext = currentfile.name.split(".").reverse()[0]
   } else {
     rootFolder.appendFile(newfile);
   }
+  */
 }
 
 

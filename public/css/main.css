@@ -4,6 +4,7 @@
   --topbar-bgcolor-hover: rgba(70, 70, 70, 0.9);
   --topbar-fgcolor: rgb(204, 204, 204);
   --topbar-selection-hover: rgb(9, 71, 113);
+  --topbar-selection-hover-negative: rgb(113, 9, 9);
   --sidebar-items-bgcolor: rgb(35, 35, 35);
   --sidebar-bgcolor: rgb(51, 51, 51);
   --sidebar-bgcolor2: rgb(35, 35, 35);
@@ -30,11 +31,9 @@ input[type=checkbox] {
   right:0;
   
 }
-.arrow {
-  text-align:right;
-  margin-top:4px;
-  margin-right:7px;
-  font-size:10px;
+.folder-icon {
+  width: 14px;
+  height: 14px;
 }
 #overView {
   display:none;
@@ -68,6 +67,7 @@ input[type=checkbox] {
 #overView a {
   font-size:14px;
 }
+/*
 #fileEditMenu {
   position:fixed;
   height:300px;
@@ -100,6 +100,7 @@ input[type=checkbox] {
 #fileEditMenu li:hover {
   background-color: rgb(100, 100, 100, 0.999);
 }
+*/
 .termbutton {
   position:relative;
   right:10px;
@@ -182,7 +183,8 @@ html, body {
 
   margin: 0;
   padding-left: 8px;
-  gap: 6px;
+  
+  /* gap: 6px; */
 
   justify-content: left;
   align-content: center;
@@ -230,7 +232,7 @@ html, body {
   background-color: var(--topbar-bgcolor-hover);
 }
 
-#topbar-options {
+.popup-menu {
   display: none;
   /* display: flex; */
   position: absolute;
@@ -254,9 +256,12 @@ html, body {
   background-color: var(--sidebar-bgcolor2);
   color: var(--topbar-fgcolor);
   list-style: none;
+
+  overflow: hidden;
+  transition: height .2s, left .2s, top .2s;
 }
 
-#topbar-options li {
+.popup-menu li {
   display: flex;
   cursor: pointer;
 
@@ -278,8 +283,12 @@ html, body {
   -webkit-user-select: none;
 }
 
-#topbar-options li:hover {
+.popup-menu li:hover {
   background-color: var(--topbar-selection-hover);
+}
+
+.popup-menu li.popup-negative:hover {
+  background-color: var(--topbar-selection-hover-negative);
 }
 
 #sidebar {
@@ -390,6 +399,9 @@ html, body {
   font-size: 15px;
   cursor: pointer;
   padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .file-name:hover {
@@ -398,4 +410,8 @@ html, body {
 
 .file-icon {
     
+}
+
+.multiplayer-cursor {
+  background: green;
 }

@@ -1,8 +1,8 @@
 function getAdkConfiguration() {
   return {
     comments: {
-      lineComment: '//',
-      blockComment: ['//', '\\\\']
+      lineComment: '#',
+      blockComment: ['#*', '*#']
     },
     brackets: [
       ['{', '}'],
@@ -30,6 +30,11 @@ function getAdkConfiguration() {
       open: '"',
       close: '"',
       notIn: ['string']
+    },
+    {
+      open: '`',
+      close: '`',
+      notIn: ['string']
     }
     ],
     surroundingPairs: [{
@@ -51,6 +56,10 @@ function getAdkConfiguration() {
     {
       open: "'",
       close: "'"
+    },
+    {
+      open: '`',
+      close: '`'
     }
     ],
   }
@@ -63,25 +72,25 @@ function getAdkLanguage() {
     tokenPostfix: '.adk',
 
     keywords: [
-      'break', 'type', 'continue',
-      'do', 'else',
+      'break', 'class', 'continue',
+      'do', 'else', 'include',
       'extending', 'for', 'as', 'function', 'from',
       'if',
       'set',
       'return', 'match', 'while',
-      "and", "xor", "or", "static", "in", "not", "case", "delete", "try", "catch", 'copy', 'ref', 'goto'
+      "and", "xor", "or", "static", "in", "not", "case", "delete", "try", "catch", 'copy', 'ref', 'construct'
     ],
 
     typeKeywords: [
-      'Boolean', 'Number', 'Object', 'String', 'Array', 'null', 'true', 'false', 'any', 'Integer'
+      'Boolean', 'Number', 'Object', 'String', 'Array', 'null', 'true', 'false', 'any', 'Integer', 'BitArray'
     ],
 
     operators: [
       '>', '<', '<=', '>=', '==', '!=', '=>', '+', '-', '**',
-      '*', '/', '%', '++', '--', '<<', '</', '>>', '>>>', '&',
-      '|', 'x|', '!', '&&', '||', '=', '+=', '-=',
-      '*=', '^=', '/=', '%=', '<<=', '>>=', '>>>=', '&=', '|=',
-      'x|=', '@'
+      '*', '/', '%', '++', '--', '&',
+      '|', 'x|', '!', '&&', '||', '=', '+=', '-=', '^',
+      '*=', '^=', '/=', '%=', '&=', '|=',
+      'x|=', '@', '@='
     ],
 
     // we include these common regular expressions
@@ -111,28 +120,8 @@ function getAdkLanguage() {
           token: 'callFunction',
           next: '@callFunction'
         }],
-        [/\~[a-zA-Z_$][\w$]*\s*\(?/, {
+        [/\$[a-zA-Z_$][\w$]*\s*\(?/, {
           token: 'callFunction.special',
-          next: '@callFunction'
-        }],
-        [/\~operator[<>$!+\-@%^&*|?]+\s*\(?/, {
-          token: 'callFunction.special.operator',
-          next: '@callFunction'
-        }],
-        [/\~init\s*\(?/, {
-          token: 'callFunction.special.init',
-          next: '@callFunction'
-        }],
-        [/\~call\s*\(?/, {
-          token: 'callFunction.special.call',
-          next: '@callFunction'
-        }],
-        [/\~ref\s*\(?/, {
-          token: 'callFunction.special.ref',
-          next: '@callFunction'
-        }],
-        [/\~delete\s*\(?/, {
-          token: 'callFunction.special.delete',
           next: '@callFunction'
         }],
         {
@@ -143,23 +132,10 @@ function getAdkLanguage() {
         },
 
         // include directive
-        [/^\s*#\s*include/, {
+        [/^\s*include/, {
           token: 'keyword.directive.include',
           next: '@include'
         }],
-
-        // jump directive
-        [/^\s*#\s*jump/, {
-          token: 'keyword.directive.jump'
-        }],
-
-        // define directive
-        [/^\s*#\s*define/, {
-          token: 'keyword.directive.define'
-        }],
-
-        // other directives
-        [/^\s*#\s*\w+/, 'keyword.directive'],
       ],
 
       common: [
@@ -205,9 +181,9 @@ function getAdkLanguage() {
         // numbers
         [/(@digits)[eE]([\-+]?(@digits))?/, 'number.float'],
         [/(@digits)\.(@digits)([eE][\-+]?(@digits))?/, 'number.float'],
-        [/0[xX](@hexdigits)/, 'number.hex'],
-        [/0[oO]?(@octaldigits)/, 'number.octal'],
-        [/0[bB](@binarydigits)/, 'number.binary'],
+        [/16_(@hexdigits)/, 'number.hex'],
+        [/8_(@octaldigits)/, 'number.octal'],
+        [/2_(@binarydigits)/, 'number.binary'],
         [/(@digits)/, 'number'],
 
         // delimiter: after number because of .\d floats
@@ -219,6 +195,9 @@ function getAdkLanguage() {
         [/"/, 'string', '@string_double'],
         [/'/, 'string', '@string_single'],
         [/`/, 'string', '@string_backtick'],
+        // [/\$"/, 'string', '@template_string_double'],
+        // [/\$'/, 'string', '@template_string_single'],
+        // [/\$`/, 'string', '@template_string_backtick'],
       ],
 
       bracketDelims: [
@@ -238,9 +217,9 @@ function getAdkLanguage() {
       ],
 
       doc: [
-        [/[^\/*]+/, 'comment.doc'],
-        [/\*\//, 'comment.doc', '@pop'],
-        [/[\/*]/, 'comment.doc']
+        [/[^#*]+/, 'comment.doc'],
+        [/\*#/, 'comment.doc', '@pop'],
+        [/[#*]/, 'comment.doc']
       ],
 
       // We match regular expression quite precisely
@@ -290,15 +269,41 @@ function getAdkLanguage() {
       ],
 
       string_backtick: [
-        [/\$\{/, {
-          token: 'delimiter.bracket',
-          next: '@bracketCounting'
-        }],
-        [/[^\\`$]+/, 'string'],
+        [/[^\\`]+/, 'string'],
         [/@escapes/, 'string.escape'],
         [/\\./, 'string.escape.invalid'],
         [/`/, 'string', '@pop']
       ],
+      // template_string_double: [
+      //   [/\{/, {
+      //     token: 'delimiter.bracket',
+      //     next: '@bracketCounting'
+      //   }],
+      //   [/[^\\"$]+/, 'string']
+      //   [/@escapes/, 'string.escape'],
+      //   [/\\./, 'string.escape.invalid'],
+      //   [/"/, 'string', '@pop']
+      // ],
+      // template_string_single: [
+      //   [/\{/, {
+      //     token: 'delimiter.bracket',
+      //     next: '@bracketCounting'
+      //   }],
+      //   [/[^\\'$]+/, 'string']
+      //   [/@escapes/, 'string.escape'],
+      //   [/\\./, 'string.escape.invalid'],
+      //   [/'/, 'string', '@pop']
+      // ],
+      // template_string_backtick: [
+      //   [/\{/, {
+      //     token: 'delimiter.bracket',
+      //     next: '@bracketCounting'
+      //   }],
+      //   [/[^\\`$]+/, 'string']
+      //   [/@escapes/, 'string.escape'],
+      //   [/\\./, 'string.escape.invalid'],
+      //   [/`/, 'string', '@pop']
+      // ],
 
       bracketCounting: [
         [/\{/, 'delimiter.bracket', '@bracketCounting'],
@@ -312,34 +317,6 @@ function getAdkLanguage() {
       ],
 
       nestedBrackets: [
-        [/\~?[a-zA-Z_$][\w$]*\s*\(/, {
-          token: 'callFunction',
-          next: '@callFunction'
-        }],
-        [/\~[a-zA-Z_$][\w$]*\s*\(?/, {
-          token: 'callFunction.special',
-          next: '@callFunction'
-        }],
-        [/\~operator[<>$!+\-@%^&*|?]+\s*\(?/, {
-          token: 'callFunction.special.operator',
-          next: '@callFunction'
-        }],
-        [/\~init\s*\(?/, {
-          token: 'callFunction.special.init',
-          next: '@callFunction'
-        }],
-        [/\~call\s*\(?/, {
-          token: 'callFunction.special.call',
-          next: '@callFunction'
-        }],
-        [/\~ref\s*\(?/, {
-          token: 'callFunction.special.ref',
-          next: '@callFunction'
-        }],
-        [/\~delete\s*\(?/, {
-          token: 'callFunction.special.delete',
-          next: '@callFunction'
-        }],
         {
           include: "common"
         },
@@ -360,34 +337,6 @@ function getAdkLanguage() {
       ],
 
       callFunction: [
-        [/\~?[a-zA-Z_$][\w$]*\s*\(/, {
-          token: 'callFunction',
-          next: '@callFunction'
-        }],
-        [/\~[a-zA-Z_$][\w$]*\s*\(?/, {
-          token: 'callFunction.special',
-          next: '@callFunction'
-        }],
-        [/\~operator[<>$!+\-@%^&*|?]+\s*\(?/, {
-          token: 'callFunction.special.operator',
-          next: '@callFunction'
-        }],
-        [/\~init\s*\(?/, {
-          token: 'callFunction.special.init',
-          next: '@callFunction'
-        }],
-        [/\~call\s*\(?/, {
-          token: 'callFunction.special.call',
-          next: '@callFunction'
-        }],
-        [/\~ref\s*\(?/, {
-          token: 'callFunction.special.ref',
-          next: '@callFunction'
-        }],
-        [/\~delete\s*\(?/, {
-          token: 'callFunction.special.delete',
-          next: '@callFunction'
-        }],
         {
           include: "common"
         },

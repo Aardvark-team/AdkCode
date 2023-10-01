@@ -1,3 +1,4 @@
+var AI = true;
 var CurrenThemes = localStorage.getItem('editor-themes');
 const thememode = document.getElementById('settings-theme');
 const defaulthememode = document.getElementById('defaulthememode');
@@ -53,7 +54,7 @@ const letterspace = document.getElementById('settings-letterspace');
 const showlinenum = document.getElementById('settings-showlinenum');
 const fontligs = document.getElementById('settings-fontligs');
 const minimap = document.getElementById('settings-minimap');
-
+const AIelem = document.getElementById('settings-AI');
 
 
 function getOptions() {
@@ -68,7 +69,8 @@ function getOptions() {
     },
     letterSpacing: (letterspace.value / 10) - 2,
     themeSetting: thememode.value,
-    insertSpaces: false
+    insertSpaces: false,
+    AI: AIelem.checked || false,
   };
 }
 function loadOptions() {
@@ -85,6 +87,7 @@ function loadOptions() {
   showlinenum.checked = Options.lineNumbers;
   fontligs.checked = Options.fontLigatures;
   minimap.checked = Options.minimap.enabled;
+  AIelem.checked = Options.AI;
   letterspace.value = (Options.letterSpacing + 2) * 10;
   thememode.value = Options.themeSetting || thememode.value;
   setOptions();

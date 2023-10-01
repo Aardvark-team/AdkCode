@@ -1,3 +1,16 @@
+const images = [];
+function preload() {
+    for (let i = 0; i < arguments.length; i++) {
+        images[i] = new Image();
+        images[i].src = preload.arguments[i];
+    }
+}
+
+preload(
+  "imgs/folder.svg",
+  "imgs/folder-open.svg"
+);
+
 /*
 <div class="file-folder file-root">
   <div class="file-icon"></div>
@@ -93,6 +106,27 @@ var saveActions = [];
 var fileMenu = document.getElementById('fileEditMenu');
 var fileMenuRename = document.getElementById('fileEditMenuRename');
 var fileMenuDelete = document.getElementById('fileEditMenuDelete');
+
+window.addEventListener("mouseover", ({ target }) => {
+  if (target.matches("#files, #files *, #fileEditMenu, #fileEditMenu *, .file-menu")) {
+    fileMenu.isHovered = true;
+  } else {
+    fileMenu.isHovered = false;
+    fileMenu.style.display = 'none';
+    openedMenu = null;
+  }
+});
+
+window.addEventListener("click", ({ target }) => {
+  if (target.matches(".file-name *, #fileEditMenu, #fileEditMenu *, .file-menu")) {
+    fileMenu.isHovered = true;
+  } else {
+    fileMenu.isHovered = false;
+    fileMenu.style.display = 'none';
+    openedMenu = null;
+  }
+});
+/*
 document.onmousemove = function(event) {
   x = event.clientX;
   y = event.clientY;
@@ -106,6 +140,7 @@ document.onmousemove = function(event) {
     openedMenu = null;
   }
 }
+*/
 fileMenuRename.onclick = function() {
   if (openedMenu && openedMenu !== null) {
     if (openedMenu instanceof AdkFile) {
@@ -179,8 +214,9 @@ class Folder {
     this.fileNameEl = document.createElement("div");
     this.filesEl = document.createElement("ul");
     this.menuEl = document.createElement('img');
-    this.arrowEl = document.createElement('span');
-    this.arrowEl.innerText = '↓';
+    this.iconEl = document.createElement("img");
+    this.iconEl.src = "imgs/folder-open.svg";
+    this.iconEl.classList.add("folder-icon");
     this.element.setAttribute("file-indent", this.level);
 
     this.fileNameEl.onmouseover = mouseOver.bind(this);
@@ -197,29 +233,28 @@ class Folder {
     if (this.isRoot)
       this.element.classList.add("file-root");
 
-    this.fileIconEl.classList.add("file-icon");
     this.fileNameEl.classList.add("file-name");
     this.filesEl.classList.add("file-files");
-    this.arrowEl.classList.add('arrow');
+    // this.arrowEl.classList.add("folder-icon");
     this.menuEl.src = '/imgs/dots.svg';
     this.menuEl.style.width = '18px';
     this.menuEl.style.height = '18px';
     this.menuEl.parent = this;
-    this.menuEl.onmouseover = function() {
+    this.menuEl.addEventListener("click", function() {
       fileMenu.style.display = 'flex';
-      rect = this.getBoundingClientRect();
+      const rect = this.getBoundingClientRect();
       fileMenu.style.top = rect.top - (rect.height / 2);
       fileMenu.style.left = rect.left + (rect.width / 2);
       openedMenu = this.parent;
       this.src = '/imgs/dots-selected.svg';
-    };
-    this.menuEl.onmouseleave = function() {
+    });
+    this.menuEl.addEventListener("mouseleave", function() {
       if (!fileMenu.isHovered) {
         fileMenu.style.display = 'none';
         openedMenu = null;
         this.src = '/imgs/dots.svg';
       }
-    };
+    });
     this.menuEl.classList.add('file-menu');
 
     this.element.append(this.fileIconEl);
@@ -229,7 +264,7 @@ class Folder {
   }
   updateName() {
     this.fileNameEl.innerHTML = '';
-    this.fileNameEl.append(this.arrowEl);
+    this.fileNameEl.append(this.iconEl);
     this.fileNameEl.innerHTML += this.name;
     this.fileNameEl.append(this.menuEl);
   }
@@ -269,10 +304,10 @@ class Folder {
     newfile.setAction(function() {
       this.filesEl.classList.toggle("folder-hidden");
       if (this.filesEl.classList.contains('folder-hidden')) {
-        this.arrowEl.innerText = '→';
+        this.iconEl.src = "imgs/folder.svg";
         this.updateName();
       } else {
-        this.arrowEl.innerText = '↓ ';
+        this.iconEl.src = "imgs/folder-open.svg";
         this.updateName();
       }
     })
@@ -311,7 +346,11 @@ class Folder {
     if (this.action) {
       this.removeAction();
     }
-    this.action = cb.bind(this);
+    this.action = (function(ev) {
+      if (ev.target && ev.target.classList.contains("file-menu")) return;
+      cb.bind(this)(ev);
+    }).bind(this);
+    
     this.fileNameEl.addEventListener("click", this.action);
   }
 
@@ -369,21 +408,21 @@ class AdkFile {
       this.menuEl.style.width = '18px';
       this.menuEl.style.height = '18px';
       this.menuEl.parent = this;
-      this.menuEl.onmouseover = function() {
+      this.menuEl.addEventListener("click", function() {
         fileMenu.style.display = 'flex';
-        rect = this.getBoundingClientRect();
+        const rect = this.getBoundingClientRect();
         fileMenu.style.top = rect.top - (rect.height / 2);
         fileMenu.style.left = rect.left + (rect.width / 2);
         openedMenu = this.parent;
         this.src = '/imgs/dots-selected.svg';
-      };
-      this.menuEl.onmouseleave = function() {
+      });
+      this.menuEl.addEventListener("mouseleave", function() {
         if (!fileMenu.isHovered) {
           fileMenu.style.display = 'none';
           openedMenu = null;
           this.src = '/imgs/dots.svg';
         }
-      };
+      });
       this.menuEl.classList.add('file-menu');
       this.fileNameEl.append(this.menuEl);
     }
@@ -416,7 +455,10 @@ class AdkFile {
    * @param {Function} cb
    */
   setAction(cb) {
-    this.action = cb.bind(this);
+    this.action = (function(ev) {
+      if (ev.target && ev.target.classList.contains("file-menu")) return;
+      cb.bind(this)(ev);
+    }).bind(this);
     this.element.addEventListener("click", this.action);
   }
 
@@ -477,10 +519,10 @@ function traverseFilesystem(tree, origin = "/") {
         folders[folderPath].setAction(function() {
           this.filesEl.classList.toggle("folder-hidden");
           if (this.filesEl.classList.contains('folder-hidden')) {
-            this.arrowEl.innerText = '→';
+            this.iconEl.src = "imgs/folder.svg";
             this.updateName();
           } else {
-            this.arrowEl.innerText = '↓ ';
+            this.iconEl.src = "imgs/folder-open.svg";
             this.updateName();
           }
         });
@@ -491,10 +533,10 @@ function traverseFilesystem(tree, origin = "/") {
       folders[parentFolderPath].setAction(function() {
         this.filesEl.classList.toggle("folder-hidden");
         if (this.filesEl.classList.contains('folder-hidden')) {
-          this.arrowEl.innerText = '→';
+          this.iconEl.src = "imgs/folder.svg";
           this.updateName();
         } else {
-          this.arrowEl.innerText = '↓ ';
+          this.iconEl.src = "imgs/folder-open.svg";
           this.updateName();
         }
       });
@@ -516,10 +558,10 @@ function traverseFilesystem(tree, origin = "/") {
         folders[folderName].setAction(function() {
           this.filesEl.classList.toggle("folder-hidden");
           if (this.filesEl.classList.contains('folder-hidden')) {
-            this.arrowEl.innerText = '→';
+            this.iconEl.src = "imgs/folder.svg";
             this.updateName();
           } else {
-            this.arrowEl.innerText = '↓ ';
+            this.iconEl.src = "imgs/folder-open.svg";
             this.updateName();
           }
         });
@@ -587,6 +629,22 @@ function initRoot(editor) {
 
   if (currentfile) {
     editor.setValue(currentfile.content);
+
+    /*
+    console.log("ADDED DECO")
+    const deco = editor.deltaDecorations([], [
+      {
+        range: new monaco.Range(1, 1, 1, 5), // Define the range you want to apply the decorator to
+        options: {
+          isWholeLine: true, // You can specify whether to decorate the whole line or just a portion of it
+          className: 'my-custom-decorator', // CSS class for styling
+          glyphMarginClassName: 'my-glyph-margin-decorator', // CSS class for the glyph margin (left side)
+          inlineClassName: 'my-inline-decorator', // CSS class for inline styling
+          hoverMessage: 'This is a tooltip for the decorator', // Optional tooltip message
+        },
+      }
+    ]);
+    */
   } else {
     currentfile = files[0];
     files[0].element.classList.add("file-selected");
@@ -601,20 +659,7 @@ window.addEventListener("beforeunload", () => {
   window.saveFilesystem();
 })
 
-window.saveFilesystem = function(Data, action) {
-  // Need to reconstruct the filesystem YAY
-  action = action || false
-  if (currentfile) currentfile.content = editor.getValue();
-  if (action === true) {
-    for (i of saveActions) {
-      i();
-    }
-  }
-  if (currentfile)
-    localStorage.setItem("filesystem-selected", JSON.stringify({
-      name: currentfile.name,
-      path: currentfile.path
-    }))
+function filesystemToJSON(Data) {
   let filesystem;
   if (typeof Data === "object") {
     filesystem = Data;
@@ -655,6 +700,26 @@ window.saveFilesystem = function(Data, action) {
     }
     traverseFolder(rootFolder);
   }
+
+  return filesystem;
+}
+
+window.saveFilesystem = function(Data, action) {
+  // Need to reconstruct the filesystem YAY
+  action = action || false
+  if (currentfile) currentfile.content = editor.getValue();
+  if (action === true) {
+    for (i of saveActions) {
+      i();
+    }
+  }
+  if (currentfile)
+    localStorage.setItem("filesystem-selected", JSON.stringify({
+      name: currentfile.name,
+      path: currentfile.path
+    }))
+  
+  const filesystem = filesystemToJSON(Data);
   localStorage.setItem("filesystem", JSON.stringify(filesystem)); // this gets set to {}
 }
 /* 
@@ -686,10 +751,10 @@ function newFolder(path, pfolder = rootFolder) {
   folder.setAction(function() {
     this.filesEl.classList.toggle("folder-hidden");
     if (this.filesEl.classList.contains('folder-hidden')) {
-      this.arrowEl.innerText = '→';
+      this.iconEl.src = "imgs/folder.svg";
       this.updateName();
     } else {
-      this.arrowEl.innerText = '↓ ';
+      this.iconEl.src = "imgs/folder-open.svg";
       this.updateName();
     }
   });
