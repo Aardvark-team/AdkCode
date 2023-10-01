@@ -1,7 +1,7 @@
 <html theme="dark" data-theme-mode="1">
   <head>
     <meta id="theme-color" name="theme-color" content="#3C3C3C"></meta>
-    <title>Aardvark</title>
+    <title>AdkCode</title>
     <script src="https://CSS-Library.hg0428.repl.co/script.js"></script>
     <link rel="stylesheet" href="/monaco/dev/vs/editor/editor.main.css" />
      <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,13 +14,22 @@
     <script src="/xterm/lib/xterm.js"></script>
     <script src="/xterm/addons/fit/xterm-addon-fit.js"></script>
     <script src="/js/preferences.js"></script> <!-- The localStorage/prefs script file-->
+    <link rel="preconnect" href="https://fonts.googleapis.com"> 
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=JetBrains+Mono&family=Press+Start+2P&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/jsonic@1.0.1/jsonic.js"></script>
   </head>
   <body>
+    <div id="overView"></div>
+    <ul id="fileEditMenu" class="popup-menu">
+      <li id="fileEditMenuRename">Rename</li>
+      <li id="fileEditMenuDelete" class="popup-negative">Delete</li>
+    </ul>
     <nav>
       <ul id="topbar">
         <li><img src="/imgs/aardvark.svg" alt="aardvark" id="icon"></li>
       </ul>
-      <ul id="topbar-options"></ul>
+      <ul id="topbar-options" class="popup-menu"></ul>
     </nav>
 
     <main id="ide">
@@ -35,12 +44,49 @@
         </div>
         <div id="files"></div>
         <div id="settings">
-          Please note that version selection is not yet working.
-          <select name="Version" id="cars">
-            <option value="adk">Adk 1.0 Compiler (default)</option>
+          <!--Please note that version selection is not yet working.
+          <select name="Version" id="settings-version">
+            <option value="adk">Adk 1.0 Compiler</option>
             <option value="interpret">Aardvark 1.0 Interpretter</option>
             <option value="python">Aardvark 0.9</option>
+          </select>-->
+          Font Family
+          <select name="Version" id="settings-fontfamily">
+            <option value="JetBrains Mono">JetBrains Mono</option>
+            <option value="monospace">Monospace</option>
+            <option value="Fira Code">Fira Code</option>
+            <option value="Consolas">Consolas</option>
+            <option value="Source Code Pro">Source Code Pro</option>
+            <option value="Press Start 2P">Press Start 2P</option>
           </select>
+          <br/><br/>
+          Font-Size:
+          <input type="number" style="width:90%;" id="settings-fontsize" value="12" max="25" min="7">
+          <br/>
+          Font-Weight:
+          <input type="number" style="width:90%;" id="settings-fontweight" value="400" >
+                    <br/>
+          Letter Spacing:
+          <input type="number" style="width:90%;" id="settings-letterspace" value="15" >
+                    <br/>
+          Line Nums:
+          <input type="checkbox" id="settings-showlinenum" checked/><br/>
+          Ligatures: 
+          <input type="checkbox" id="settings-fontligs"/><br/>
+          Minimap: 
+          <input type="checkbox" id="settings-minimap" checked/><br/>
+          AI (BETA): 
+          <input type="checkbox" id="settings-AI" checked/><br/>
+          <br/>
+          Editor Theme:
+          <select name="Theme" id="settings-theme">
+            <option id="defaulthememode">Default</option>
+            <option value = "hg0428">Hg0428's</option>
+            <option value="vs-dark">VS Dark</option>
+            <option value="hc-black">High Contrast</option>
+          </select><br/>
+          <center><button type="submit" class="btnLift" id="settings-save">Save</button></center><br/>
+          <a href="/themes.html"><button class='borderChange'>Define theme</button></a><br/>
         </div>
       </div>
       <div id="layout">
@@ -49,6 +95,7 @@
       </div>
     </main>
 
+    <script src="/socket.io/socket.io.min.js"></script>
     <script src="/monaco/dev/vs/loader.js"></script>
     <script src="/js/editor/terminal.js"></script> <!-- The main script file -->
     <script src="/js/editor/aardvark.js"></script> <!-- Language code -->
@@ -56,6 +103,7 @@
     <script src="/js/editor/loader.js"></script> <!-- Initialize Monaco -->
     <script src="/js/editor/filetree.js"></script> <!-- The filetree script file -->
     <script src="/js/editor/topbar.js"></script> <!-- The topbar script file -->
+    <script src="/js/editor/settings.js"></script> <!-- The Settings SideBar file -->
   </body>
 </html>
 
