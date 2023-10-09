@@ -660,8 +660,10 @@ window.addEventListener("beforeunload", () => {
 })
 
 function filesystemToJSON(Data) {
+  
   let filesystem;
   if (typeof Data === "object") {
+    console.log("ran filesystemtojson with ", Data)
     filesystem = Data;
   } else {
     filesystem = {};
@@ -698,6 +700,11 @@ function filesystemToJSON(Data) {
         }
       }
     }
+    
+    if (rootFolder == undefined) {
+      rootFolder = folders["/"];
+    }
+    console.log("Ran traverseFolder with", rootFolder, typeof rootFolder)
     traverseFolder(rootFolder);
   }
 

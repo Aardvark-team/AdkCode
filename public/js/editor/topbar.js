@@ -12,6 +12,52 @@ overViewOk.id = "OK";
 icon.onclick = function() {
   window.location.href = 'https://aardvark-website.programit.repl.co';
 }
+
+async function fetchFromExa() {
+  let code = prompt(`Enter your EXA cloud repo code: `);
+  const resp = await fetch("https://appxchange.exa-team.repl.co/protocserve/" + code, {
+    method: "GET",
+  });
+  let data;
+  if (resp.status != 200) {
+    console.error("Failed to run code!");
+    return;
+  } else {
+    data = await resp.json();
+  }
+  filesystem = data.data;
+
+  console.log("GOT DATA FROM EXA CLOUD", data);
+  localStorage.setItem('filesystem', filesystem);
+  jsf = JSON.parse(filesystem);
+  window.saveFilesystem(jsf);
+  // localStorage.clear();
+  location.reload();
+}
+
+async function saveToExa() {
+  window.saveFilesystem();
+  let fstojson = localStorage.getItem('filesystem')
+  const form = new FormData();
+  form.set("json", fstojson);
+  const resp = await fetch("https://appxchange.exa-team.repl.co/protocread", {
+    method: "POST",
+    header: {
+      "content-type": "multipart/form-data",
+    },
+    body: form
+  });
+  let data;
+  if (resp.status != 200) {
+    return;
+  } else {
+    data = await resp.json();
+  }
+  alert("Your new repo code is "+data.code+"!");
+}
+
+
+
 var currenTheme = 1;
 // For topbar selection and options
 function setOverView(text, btns, other) {//HERE PRESS THE SHARE THEME
@@ -211,8 +257,8 @@ const options = [
   {
     name: "Cloud",
     selection: [
-      { text: "Connect to EXA cloud", },
-      { text: "Connect to local instance" },
+      { text: "Fetch from EXA cloud", action: fetchFromExa},
+      { text: "Save to EXA cloud", action: saveToExa},
       
       
       
@@ -425,3 +471,4 @@ document.addEventListener("mouseover", ({ clientX, clientY, target }) => {
   }
   */
 });
+

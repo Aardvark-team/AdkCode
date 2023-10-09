@@ -30,7 +30,18 @@ window.MULTIPLAYER_SOCKET.on("userJoined", ({ username, cursorX, cursorY }) => {
 function editorLoaded() {
   loadAardvark();
   loadTerminal();
-  loadSettings();
+  var nlc = false;
+  while (!nlc) {
+    try {
+      loadSettings();
+      nlc = true
+    } catch (errorfromload){
+
+      console.log("Failed loadSettings()")
+      nlc = false
+    }
+  }
+  
   editor = monaco.editor.create(editorEl, {
     fontFamily: 'JetBrains Mono',
     fontSize: '12px',
@@ -65,7 +76,6 @@ var ext;
 var running = false;
 async function runCode(code) {
   // term.write("adk run main.adk\r\n");
-  
   window.AARDVARK_API_WEBSOCKET.send(JSON.stringify({
     runProgram: {
       files: window.filesystemToJSON()
@@ -139,3 +149,4 @@ function onKeyUp(event) {
   const e = event.browserEvent;
   pressedKeys[e.key] = false;
 }
+

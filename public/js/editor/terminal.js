@@ -12,7 +12,7 @@ const term = new Terminal({
   fontSize: 14
 });
 
-let isProgramRunning = false;
+let currentProgram = null;
 
 async function checkCodeExecStatus() {
   try {
@@ -22,7 +22,7 @@ async function checkCodeExecStatus() {
     alert("The api is currently offline. Please try again a bit later.");
   }
 }
-
+let InitialConnectedToAPI = false;
 function reconnectToExecApi(isManual) {
   if (window.AARDVARK_API_WEBSOCKET &&
     window.AARDVARK_API_WEBSOCKET.readyState === 1)
@@ -37,11 +37,16 @@ function reconnectToExecApi(isManual) {
     }
 
     if (typeof data.state === "number") {
-      isProgramRunning = data.state === 2;
+      if (data.state === 2) {
+        currentProgram = 'adk';
+      } else if (currentProgram === 'adk') {
+        currentProgram = null;
+      }
 
       if (data.state === 0) {
-        clearLine();
-      }
+        if (InitialConnectedToAPI) clearLine(false);
+        InitialConnectedToAPI = true;
+      } 
     }
   });
 
@@ -199,7 +204,6 @@ let commands = {
     help: 'Use adk to enter the live Aardvark editor. Use adk run file to run a file.'
   }
 }
-
 function processCommands(str) {
   //https://gist.github.com/Prakasaka/219fe5695beeb4d6311583e79933a009
   //https://gist.github.com/LordMZTE/4b5fcd40ac9512da2c9ebdc6a676dbb8
@@ -229,8 +233,8 @@ function processCommands(str) {
       }
     } else {
       for (let i in commands) {
-        i = commands[i];
-        term.write(`\x1b[0;32m${i.name}\x1b[0m ${i.args} — ${i.shortdes}\r\n`);
+        let command = commands[i];
+        term.write(`\x1b[0;32m${command.name}\x1b[0m ${command.args} — ${command.shortdes}\r\n`);
       }
     }
   } else if (cmd === 'mkdir') {
@@ -299,25 +303,25 @@ function processCommands(str) {
       f.element.remove();
       if (f.parent) f.parent.removeFile(f);
     } else if (f instanceof Folder) {
-      term.Error("Moving directories is not yet supported.")
+      term.Error("Moving directories is not yet supported.\r\n")
     }
     newFile(agrs[1]).content = content;
   } else if (cmd === 'print') {
     if (args.length != 1) return termError(`${cmd} accepts exactly 1 arguments.`);
     let f = getByName(args[0]);
     if (f) {
-      term.write(f.content);
+      term.write(f.content.replaceAll('\n', '\r\n')+'\r\n');
     } else {
-      return termError(`Could not find file "${args[0]}"`)
+      return termError(`Could not find file "${args[0]}"\r\n`)
     }
   } else if (cmd === 'info') {
-    if (args.length != 1) return termError(`${cmd} accepts exactly 1 arguments.`);
+    if (args.length != 1) return termError(`${cmd} accepts exactly 1 arguments.\r\n`);
     let f = getByName(args[0]);
     let ext = f.name.split('.');
     ext = ext[ext.length - 1];
     term.write(`\x1b[1;32m${f.name}\x1b[0m\r\n\x1b[1;32mType: \x1b[0m${Extensions[ext]}\r\n\x1b[1;32mLength: \x1b[0m${f.content.length}\r\n\x1b[1;32mLines: \x1b[0m${f.content.split('\n').length}\r\n\r\n\x1b[1;33mPreview:\x1b[0m\r\n\r\n${f.content.replace('\n', '\r\n').slice(0, 500)}`);
   } else if (cmd === 'lex') {
-    if (!(args.length === 1 || args.length === 2)) return termError(`${cmd} accepts only 1 or 2 arguments.`);
+    if (!(args.length === 1 || args.length === 2)) return termError(`${cmd} accepts only 1 or 2 arguments.\r\n`);
     let f = getByName(args[0]);
     let json = (async () => {
       const response = await fetch('https://AdkCode-lexer-API.hg0428.repl.co/API/', {
@@ -339,9 +343,14 @@ function processCommands(str) {
       return content;
     })();
   } else if (cmd === 'aicomp') {
-    if (args.length != 1) return termError(`${cmd} accepts exactly 1 argument.`);
-    term.write('NOTE: in developer ALPHA testing.\r\nLoading, this may take up to 15 seconds...')
+    if (args.length != 1) return termError(`${cmd} accepts exactly 1 argument.\r\n`);
     let f = getByName(args[0]);
+    if (!f) {
+      //Write an ansi red error message
+      return termError(`Could not find file "${args[0]}".`);
+    }
+    term.write('NOTE: in developer ALPHA testing.\r\nLoading, this may take up to 5 seconds...');
+    console.log('Loading...');
     let json = (async () => {
       const response = await fetch('https://adk-ai.replit.app/API/', {
         method: 'POST',
@@ -353,18 +362,20 @@ function processCommands(str) {
           code: f.content
         })
       });
-      term.write('Complete! Completion added to the file.')
       const completion = await response.json();
+      alert(completion.fullcode);
       if (f === currentfile) {
         editor.setValue(completion.fullcode);
       }
       f.content = completion.fullcode;
-      openFile(f);
+      //openFile(f);
+      term.write('Complete! Completion added to the file.\r\n');
       clearLine();
+      currentProgram = 'aicomp';
     })();
     return false;
   } else if (cmd === 'debug') {
-    if (args.length != 0) return termError(`${cmd} accepts exactly 0 arguments.`);
+    if (args.length != 0) return termError(`${cmd} accepts exactly 0 arguments.\r\n`);
     window.onerror = function(message, source, lineno, colno, error) {
       term.write(message);
     }
@@ -376,21 +387,22 @@ function processCommands(str) {
         silenced: true
       }
     }));
+    currentProgram = 'adk';
     return false;
   } else {
-    return termError(`Command "${cmd}" not found.`)
+    return termError(`Command "${cmd}" not found.\r\n`)
   }
   return true;
 }
 
-function clearLine() {
+function clearLine(nl=true) {
   currentLine = '';
-  term.write(`\r\n${currentDir} $ `);
+  if (nl) term.write('\r\n');
+  term.write(`\x1b[1m\x1b[38;5;33m~${currentDir}$ \x1b[0m`);
 }
 term.onData(data => {
-  if (isProgramRunning) {
-    AARDVARK_API_WEBSOCKET.send(JSON.stringify({ input: data }));
-    return;
+  if (currentProgram === 'adk') {
+    return AARDVARK_API_WEBSOCKET.send(JSON.stringify({ input: data }));
   }
 
   if (data.length === 1) {
@@ -398,11 +410,13 @@ term.onData(data => {
     if (code === 127 && currentLine != '') { //Backspace
       currentLine = currentLine.slice(0, -1);
       term.write('\b \b');
-    } else if (data === '\n' || data === '\r') {
-      term.write('\r\n');
-      
+    } else if ((data === '\n' || data === '\r') && !currentProgram) {
+      if (currentLine === '') {
+        return clearLine();
+      }
       let doClear = processCommands(currentLine);
-      if (doClear) clearLine();
+      currentLine = '';
+      if (doClear) clearLine(false);
     } else if (code === 9) {
       //Tab Autocomplete
       let c = currentLine.split(' ');
@@ -449,7 +463,7 @@ term.onData(data => {
       term.write(data);
     }
   } else { //paste / Option delete
-    if (data === "[A") {
+    if (data === "[A" && !currentProgram) {
       if (commandCycle < commandHistory.length) commandCycle += 1;
       if (commandCycle <= 0) {
         commandCycle = 0;
@@ -461,7 +475,7 @@ term.onData(data => {
       currentLine = cmdstr;
       return;
     }
-    if (data === "[B") {
+    if (data === "[B" && !currentProgram) {
       if (commandCycle > 0) commandCycle -= 1;
       let cmdstr;
       if (commandCycle <= 0) {
@@ -474,17 +488,19 @@ term.onData(data => {
       currentLine = cmdstr;
       return;
     }
-    if (data === "") {
+    if (data === "" && !currentProgram) {
       currentLine = currentLine.split(' ');
       currentLine = currentLine.slice(0, -1).join(' ');
-      term.write(`\x1B[2K\r$ ${currentLine}`);
+      term.write(`\x1B[2K\r${currentDir} $ ${currentLine}`);
     }
     data = data.split('\n');
     term.write(data[0]);
     for (let i = 1; i < data.length; i++) {
-      processCommands(data[i]);
-      clearLine();
-      currentLine += data[i];
+      if (!currentProgram) {
+        processCommands(data[i]);
+        clearLine();
+        currentLine += data[i];
+      }
       term.write(data[i]);
     }
   }
