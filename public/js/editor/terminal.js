@@ -179,12 +179,6 @@ let commands = {
     shortdes: 'Give basic file info.',
     help: 'Shows file length, file type, number of lines, and part of its content.'
   },
-  'lex': {
-    name: 'lex',
-    args: '[filename] ?[target]',
-    shortdes: 'Lex an Aardvark file and return tokens.',
-    help: 'Contacts an API to lex the specified Aardvark file. If the target is not specified then it just prints the tokens, otherwise the tokens will be saved to the target.\r\nWe recomend setting the target to a file of type JSON.'
-  },
   'aicomp': {
     name: 'aicomp',
     args: '[filename]',
@@ -320,28 +314,6 @@ function processCommands(str) {
     let ext = f.name.split('.');
     ext = ext[ext.length - 1];
     term.write(`\x1b[1;32m${f.name}\x1b[0m\r\n\x1b[1;32mType: \x1b[0m${Extensions[ext]}\r\n\x1b[1;32mLength: \x1b[0m${f.content.length}\r\n\x1b[1;32mLines: \x1b[0m${f.content.split('\n').length}\r\n\r\n\x1b[1;33mPreview:\x1b[0m\r\n\r\n${f.content.replace('\n', '\r\n').slice(0, 500)}`);
-  } else if (cmd === 'lex') {
-    if (!(args.length === 1 || args.length === 2)) return termError(`${cmd} accepts only 1 or 2 arguments.\r\n`);
-    let f = getByName(args[0]);
-    let json = (async () => {
-      const response = await fetch('https://AdkCode-lexer-API.hg0428.repl.co/API/', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        },
-        body: JSON.stringify({
-          code: f.content
-        })
-      });
-      const content = await response.json();
-      if (args[1]) {
-        getByName(currentDir + args[1], true).content = JSON.stringify(content['tokens'], null, 2);
-      } else {
-        term.write(JSON.stringify(content['tokens'], null, 2).replace('\n', '\r\n'));
-      }
-      return content;
-    })();
   } else if (cmd === 'aicomp') {
     if (args.length != 1) return termError(`${cmd} accepts exactly 1 argument.\r\n`);
     let f = getByName(args[0]);
@@ -395,10 +367,10 @@ function processCommands(str) {
   return true;
 }
 
-function clearLine(nl=true) {
+function clearLine(nl=true, preset='') {
   currentLine = '';
   if (nl) term.write('\r\n');
-  term.write(`\x1b[1m\x1b[38;5;33m~${currentDir}$ \x1b[0m`);
+  term.write(`\x1b[1m\x1b[38;5;33m~${currentDir}$ \x1b[0m${preset}`);
 }
 term.onData(data => {
   if (currentProgram === 'adk') {
@@ -421,7 +393,7 @@ term.onData(data => {
       //Tab Autocomplete
       let c = currentLine.split(' ');
       let len = c.length;
-      let before = c.slice(0, -1).join(' ');
+      let before = c.slice(0, -1);
       c = c[c.length - 1];
       console.log(c);
       if (c === '') return;
@@ -445,15 +417,14 @@ term.onData(data => {
       }
       //restart line [2K\r
       console.log(autoCompleteList);
+      let erase='\b'.repeat(currentLine.length);
       for (let i of autoCompleteList) {
         if (i.startsWith(c)) {
-          if (len == 1) {
-            currentLine = `${i}`;
-            term.write(`[2K\r${currentDir} $ ${i}`);
-          } else {
-            currentLine = `${before} ${i}`;
-            term.write(`[2K\r${currentDir} $ ${before} ${i}`);
-          }
+          before.push(i);
+          currentLine = before.join(' ');
+          console.log(`c:${currentLine}`);
+          term.write(erase+currentLine);
+          break;
         }
       }
     } else if (code < 32 || code === 127) {
@@ -491,7 +462,8 @@ term.onData(data => {
     if (data === "" && !currentProgram) {
       currentLine = currentLine.split(' ');
       currentLine = currentLine.slice(0, -1).join(' ');
-      term.write(`\x1B[2K\r${currentDir} $ ${currentLine}`);
+      term.write('[2K\r');
+      clearLine(false, currentLine);
     }
     data = data.split('\n');
     term.write(data[0]);
