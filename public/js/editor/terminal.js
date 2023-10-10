@@ -232,32 +232,37 @@ function processCommands(str) {
       }
     }
   } else if (cmd === 'mkdir') {
-    if (args.length < 1) return termError('No directory name provided!');
-    if (args.length > 1) return termError('Too many arguments! mkdir only accepts one argument.');
+    if (args.length < 1) return termError('No directory name provided!\r\n');
+    if (args.length > 1) return termError('Too many arguments! mkdir only accepts one argument.\r\n');
     newFolder(currentDir + args[0]);
   } else if (cmd === 'touch' || cmd === 'mkf') {
-    if (args.length < 1) return termError('No file name provided!');
-    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.`);
+    if (args.length < 1) return termError('No file name provided!\r\n');
+    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.\r\n`);
     newFile(currentDir + args[0]);
   } else if (cmd === 'cd') {
     if (args.length < 1) //
-      return termError('No file provided!');
-    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.`);
+      return termError('No file provided!\r\n');
+    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.\r\n`);
     if (args[0] === '..') {
-      currentDir = currentDir.split('/').slice(0, -1).join('/');
-    } else if (getByName(currentDir + args[0])) {
-      currentDir += args[0] + "/";
+      if (currentDir === '/') return termError(`Already at root!\r\n`)
+      currentDir = currentDir.split('/').slice(0, -2).join('/')+'/';
+    } else if (args[0].startsWith('/') && getByName(args[0])) {
+      currentDir = args[0];
+    }
+    else if (getByName(currentDir + args[0])) {
+      if (!args[0].endsWith('/')) args[0] = args[0] + '/';
+      currentDir += args[0];
     } else {
-      termError(`${currentDir + args[0]} does not exist.`)
+      termError(`${currentDir + args[0]} does not exist.\r\n`)
     }
   } else if (cmd == 'echo') {
     term.write(args.join(' '));
   } else if (cmd === 'pwd') {
-    if (args.length > 1) return termError(`Too many arguments! ${cmd} doesn't accept any argumnets.`);
-    term.write(currentDir);
+    if (args.length > 1) return termError(`Too many arguments! ${cmd} doesn't accept any argumnets.\r\n`);
+    term.write(currentDir+'\r\n');
   } else if (cmd === 'rm') {
-    if (args.length < 1) return termError('No file provided!');
-    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.`);
+    if (args.length < 1) return termError('No file provided!\r\n');
+    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.\r\n`);
     let f = getByName(currentDir + args[0]);
     if (f instanceof AdkFile) {
       files = files.filter(el => el !== f);
@@ -268,8 +273,8 @@ function processCommands(str) {
       if (f.parent) f.parent.removeFolder(f);
     }
   } else if (cmd === 'code') {
-    if (args.length < 1) return termError('No file provided!');
-    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.`);
+    if (args.length < 1) return termError('No file provided!\r\n');
+    if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.\r\n`);
     let f = getByName(currentDir + args[0]);
     if (!f) {
       newFile(currentDir + args[0]);
@@ -277,7 +282,7 @@ function processCommands(str) {
     }
     openFile(f);
   } else if (cmd === 'ls') {
-    if (args.length > 1) return termError(`Too many arguments! ${cmd} doesn't accept any argumnets.`);
+    if (args.length > 1) return termError(`Too many arguments! ${cmd} doesn't accept any argumnets.\r\n`);
     for (let f of dirObject.files) {
       if (f instanceof AdkFile) {
         term.write(f.name + '\r\n');
@@ -289,7 +294,7 @@ function processCommands(str) {
     clearTerm(false);
   } else if (cmd === 'mv') {
     //mv source dest
-    if (args.length != 2) return termError(`${cmd} accepts exactly 2 arguments.`);
+    if (args.length != 2) return termError(`${cmd} accepts exactly 2 arguments.\r\n`);
     let f = getByName(currentDir + args[0]);
     let content = f.content;
     if (f instanceof AdkFile) {
@@ -301,7 +306,7 @@ function processCommands(str) {
     }
     newFile(agrs[1]).content = content;
   } else if (cmd === 'print') {
-    if (args.length != 1) return termError(`${cmd} accepts exactly 1 arguments.`);
+    if (args.length != 1) return termError(`${cmd} accepts exactly 1 arguments.\r\n`);
     let f = getByName(args[0]);
     if (f) {
       term.write(f.content.replaceAll('\n', '\r\n')+'\r\n');
@@ -319,7 +324,7 @@ function processCommands(str) {
     let f = getByName(args[0]);
     if (!f) {
       //Write an ansi red error message
-      return termError(`Could not find file "${args[0]}".`);
+      return termError(`Could not find file "${args[0]}".\r\n`);
     }
     term.write('NOTE: in developer ALPHA testing.\r\nLoading, this may take up to 5 seconds...');
     console.log('Loading...');
@@ -403,16 +408,12 @@ term.onData(data => {
       } else {
         let check = (folder = rootFolder, start = '') => {
           for (i of folder.files) {
-            if (i instanceof AdkFile) {
-              autoCompleteList.push(start + i.name);
-            } else if (i instanceof Folder) {
-              autoCompleteList.push(start + i.name);
-              start += i.name + '/';
-              check(i, start);
-            }
+            autoCompleteList.push(start + i.name);
+            autoCompleteList.push('/'+start + i.name);
+            if (i instanceof Folder)
+              check(i, start + i.name + '/');
           }
         }
-        check()
         check(getByName(currentDir));
       }
       //restart line [2K\r
