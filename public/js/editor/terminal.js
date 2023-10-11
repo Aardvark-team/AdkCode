@@ -198,18 +198,35 @@ let commands = {
     help: 'Use adk to enter the live Aardvark editor. Use adk run file to run a file.'
   }
 }
-function processCommands(str) {
+//TODO: add $PATH
+let variables = {};
+function processCommands(str, nl=true, vars=variables) {
   //https://gist.github.com/Prakasaka/219fe5695beeb4d6311583e79933a009
   //https://gist.github.com/LordMZTE/4b5fcd40ac9512da2c9ebdc6a676dbb8
   //^^Replace \e with \x1b
   if (commandHistory[commandHistory.length - 1] != str) commandHistory.push(str);
   let dirObject = getByName(currentDir);
-  term.write('\r\n');
+  if (nl) term.write('\r\n');
   let args = [];
-  for (let arg of str.split(' ')) {
-    if (arg != '') {
+  let raw_args = str.split(' ');
+  for (let i=0;i<raw_args.length;i++) {
+    console.log(vars);
+    let arg = raw_args[i];
+    if (!arg.endsWith('\\\\') && arg.endsWith('\\')) {
+      i++;
+      if (i>=raw_args.length) return termError('Syntax Error. Cannot end line with \\.');
+      args.push(arg+' '+raw_args[i]);
+    } else if (arg.startsWith('"')) {
+      while (i < raw_args.length && !raw_args[i].endsWith('"')) {
+        arg += raw_args[i];
+        i++;
+      } 
+      args.push(arg.slice(1, -1));
+    } else if (arg.startsWith('$') && Object.keys(vars).includes(arg.slice(1))) {
+      args.push(vars[arg.slice(1)]);
+    } else if (arg != '') {
       args.push(arg);
-    }
+    } 
   }
   let cmd = args[0];
   args = args.slice(1);
@@ -366,6 +383,28 @@ function processCommands(str) {
     }));
     currentProgram = 'adk';
     return false;
+  } else if (cmd.startsWith('./')) {
+    let f = getByName(cmd.slice(2));
+    console.log(cmd.slice(2), cmd)
+    if (!f) {
+      return termError(`Cannot execute non-existant file.\r\n`);
+    }
+    let commands = f.content.split('\n');
+    let scopeVars = {};
+    for (let i=0;i<args.length;i++) {
+      scopeVars[String(i)] = args[i];
+    }
+    console.log(scopeVars);
+    processCommands(commands[0], false, scopeVars);
+    for (let command of commands.slice(1)) {
+      processCommands(command, true, scopeVars);
+    }
+  } else if (cmd.startsWith('$')) {
+    let data = str.split('=');
+    if (data.length > 2) return termError(`Sytnax Error\r\n`);
+    let left = data[0].replaceAll(' ', '').slice(1);
+    vars[left] = removePrefix(data[1], ' ');
+    
   } else {
     return termError(`Command "${cmd}" not found.\r\n`)
   }
@@ -377,6 +416,16 @@ function clearLine(nl=true, preset='') {
   if (nl) term.write('\r\n');
   term.write(`\x1b[1m\x1b[38;5;33m~${currentDir}$ \x1b[0m${preset}`);
 }
+function removePrefix(inputString, prefix) {
+  // Create a regular expression with the prefix to match
+  const prefixRegex = new RegExp(`^${prefix}`);
+  
+  // Use replace to remove the prefix
+  const result = inputString.replace(prefixRegex, '');
+
+  return result;
+}
+
 term.onData(data => {
   if (currentProgram === 'adk') {
     return AARDVARK_API_WEBSOCKET.send(JSON.stringify({ input: data }));
@@ -388,6 +437,7 @@ term.onData(data => {
       currentLine = currentLine.slice(0, -1);
       term.write('\b \b');
     } else if ((data === '\n' || data === '\r') && !currentProgram) {
+      currentLine = currentLine.trim()
       if (currentLine === '') {
         return clearLine();
       }
@@ -405,17 +455,21 @@ term.onData(data => {
       let autoCompleteList = [];
       if (len == 1) {
         autoCompleteList = Object.keys(commands);
-      } else {
-        let check = (folder = rootFolder, start = '') => {
-          for (i of folder.files) {
-            autoCompleteList.push(start + i.name);
-            autoCompleteList.push('/'+start + i.name);
-            if (i instanceof Folder)
-              check(i, start + i.name + '/');
-          }
-        }
-        check(getByName(currentDir));
       }
+      let check = (folder = rootFolder, start = '') => {
+        for (i of folder.files) {
+          if (start.startsWith(currentDir)) {
+            let relative = removePrefix(start, currentDir);
+            autoCompleteList.push(relative + i.name);
+            autoCompleteList.push('./' + relative + i.name);
+          }
+          autoCompleteList.push(start + i.name);
+          autoCompleteList.push('/'+start + i.name);
+          if (i instanceof Folder)
+            check(i, start + i.name + '/');
+        }
+      }
+      check(getByName(currentDir));
       //restart line [2K\r
       console.log(autoCompleteList);
       let erase='\b'.repeat(currentLine.length);
@@ -443,7 +497,7 @@ term.onData(data => {
       } else {
         cmdstr = commandHistory.slice().reverse()[commandCycle - 1];
       }
-      term.write(`[2K\r${currentDir.slice(1)}/ $ ${cmdstr}`);
+      term.write('\b'.repeat(currentLine.length)+cmdstr);
       currentLine = cmdstr;
       return;
     }
@@ -456,7 +510,7 @@ term.onData(data => {
       } else {
         cmdstr = commandHistory.slice().reverse()[commandCycle - 1];
       }
-      term.write(`[2K\r${currentDir.slice(1)}/ $ ${cmdstr}`);
+      term.write('\b'.repeat(currentLine.length)+cmdstr);
       currentLine = cmdstr;
       return;
     }
