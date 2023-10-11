@@ -70,7 +70,14 @@ app.use(express.json());
 app.use("/monaco", express.static("node_modules/monaco-editor"));
 app.use("/xterm", express.static("node_modules/xterm"));
 app.use("/xterm/addons/fit", express.static("node_modules/xterm-addon-fit/lib"));
-
+app.use(function(req, res, next) {
+  res.set({
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Cross-Origin-Embedder-Policy': 'require-corp',
+    'Cross-Origin-Resource-Policy': 'cross-origin'
+  })
+  next();
+});
 app.post("/db/get_theme", (req, res) => {
   let themeId = req.body.themeId;
   
@@ -114,7 +121,7 @@ server.listen(port, _ => {
   //Ok, it works. MD5 hashes are short though.
   // but they are unique
   //Hopefully
-})
+});
 /*app.get('/themes/share/{token}', function(req, res) {
   //Allow the saving and sharing of themes
   res.send('Hello World!');

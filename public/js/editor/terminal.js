@@ -1,6 +1,19 @@
 //https://stackoverflow.com/questions/45924485/how-to-create-web-based-terminal-using-xterm-js-to-ssh-into-a-system-on-local-ne
 //Make a bash terminal
 //https://xtermjs.org xterm docs
+/*
+TODO:
+ - $PATH
+ - alias and unalias
+ - && and
+ - ; and
+ - < pipe
+ - | pipe
+ - functions
+ - loops
+ - run python in the browser
+ etc
+*/
 const CODE_EXECUTION_API = "aardvark-py-api.programit.repl.co";
 
 
