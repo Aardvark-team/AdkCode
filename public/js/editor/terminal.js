@@ -59,7 +59,7 @@ function reconnectToExecApi(isManual) {
       if (data.state === 0) {
         if (InitialConnectedToAPI) clearLine(false);
         InitialConnectedToAPI = true;
-      } 
+      }
     }
   });
 
@@ -69,8 +69,8 @@ function reconnectToExecApi(isManual) {
 
   window.AARDVARK_API_WEBSOCKET.addEventListener("close", () => {
     window.alert("Lost connection to the code execution api. (or didn't even connect)");
-    
-    
+
+
   });
 }
 
@@ -213,7 +213,7 @@ let commands = {
 }
 //TODO: add $PATH
 let variables = {};
-function processCommands(str, nl=true, vars=variables) {
+function processCommands(str, nl = true, vars = variables) {
   //https://gist.github.com/Prakasaka/219fe5695beeb4d6311583e79933a009
   //https://gist.github.com/LordMZTE/4b5fcd40ac9512da2c9ebdc6a676dbb8
   //^^Replace \e with \x1b
@@ -222,24 +222,24 @@ function processCommands(str, nl=true, vars=variables) {
   if (nl) term.write('\r\n');
   let args = [];
   let raw_args = str.split(' ');
-  for (let i=0;i<raw_args.length;i++) {
+  for (let i = 0; i < raw_args.length; i++) {
     console.log(vars);
     let arg = raw_args[i];
     if (!arg.endsWith('\\\\') && arg.endsWith('\\')) {
       i++;
-      if (i>=raw_args.length) return termError('Syntax Error. Cannot end line with \\.');
-      args.push(arg+' '+raw_args[i]);
+      if (i >= raw_args.length) return termError('Syntax Error. Cannot end line with \\.');
+      args.push(arg + ' ' + raw_args[i]);
     } else if (arg.startsWith('"')) {
       while (i < raw_args.length && !raw_args[i].endsWith('"')) {
         arg += raw_args[i];
         i++;
-      } 
+      }
       args.push(arg.slice(1, -1));
     } else if (arg.startsWith('$') && Object.keys(vars).includes(arg.slice(1))) {
       args.push(vars[arg.slice(1)]);
     } else if (arg != '') {
       args.push(arg);
-    } 
+    }
   }
   let cmd = args[0];
   args = args.slice(1);
@@ -275,7 +275,7 @@ function processCommands(str, nl=true, vars=variables) {
     if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.\r\n`);
     if (args[0] === '..') {
       if (currentDir === '/') return termError(`Already at root!\r\n`)
-      currentDir = currentDir.split('/').slice(0, -2).join('/')+'/';
+      currentDir = currentDir.split('/').slice(0, -2).join('/') + '/';
     } else if (args[0].startsWith('/') && getByName(args[0])) {
       currentDir = args[0];
     }
@@ -289,7 +289,7 @@ function processCommands(str, nl=true, vars=variables) {
     term.write(args.join(' '));
   } else if (cmd === 'pwd') {
     if (args.length > 1) return termError(`Too many arguments! ${cmd} doesn't accept any argumnets.\r\n`);
-    term.write(currentDir+'\r\n');
+    term.write(currentDir + '\r\n');
   } else if (cmd === 'rm') {
     if (args.length < 1) return termError('No file provided!\r\n');
     if (args.length > 1) return termError(`Too many arguments! ${cmd} only accepts one argument.\r\n`);
@@ -339,7 +339,7 @@ function processCommands(str, nl=true, vars=variables) {
     if (args.length != 1) return termError(`${cmd} accepts exactly 1 arguments.\r\n`);
     let f = getByName(args[0]);
     if (f) {
-      term.write(f.content.replaceAll('\n', '\r\n')+'\r\n');
+      term.write(f.content.replaceAll('\n', '\r\n') + '\r\n');
     } else {
       return termError(`Could not find file "${args[0]}"\r\n`)
     }
@@ -357,29 +357,31 @@ function processCommands(str, nl=true, vars=variables) {
       return termError(`Could not find file "${args[0]}".\r\n`);
     }
     term.write('NOTE: in developer ALPHA testing.\r\nLoading, this may take up to 5 seconds...');
-    console.log('Loading...');
-    let json = (async () => {
-      const response = await fetch('https://adk-ai.replit.app/API/', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        },
-        body: JSON.stringify({
-          code: f.content
-        })
-      });
-      const completion = await response.json();
-      alert(completion.fullcode);
-      if (f === currentfile) {
-        editor.setValue(completion.fullcode);
-      }
-      f.content = completion.fullcode;
-      //openFile(f);
-      term.write('Complete! Completion added to the file.\r\n');
-      clearLine();
-      currentProgram = 'aicomp';
-    })();
+    console.log('Loading...', f.content);
+    fetch('https://adk-ai.replit.app/API/', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      body: JSON.stringify({
+        code: f.content
+      })
+    }).then(response => {
+      console.log(response);
+      return response.json();
+      }).then(data => {
+        console.log(data);
+        // alert(data.fullcode);
+        if (f === currentfile) {
+          editor.setValue(data.fullcode);
+        }
+        f.content = data.fullcode;
+        //openFile(f);
+        term.write('Complete! Completion added to the file.\r\n');
+        clearLine();
+        currentProgram = 'aicomp';
+      })
     return false;
   } else if (cmd === 'debug') {
     if (args.length != 0) return termError(`${cmd} accepts exactly 0 arguments.\r\n`);
@@ -404,7 +406,7 @@ function processCommands(str, nl=true, vars=variables) {
     }
     let commands = f.content.split('\n');
     let scopeVars = {};
-    for (let i=0;i<args.length;i++) {
+    for (let i = 0; i < args.length; i++) {
       scopeVars[String(i)] = args[i];
     }
     console.log(scopeVars);
@@ -417,14 +419,14 @@ function processCommands(str, nl=true, vars=variables) {
     if (data.length > 2) return termError(`Sytnax Error\r\n`);
     let left = data[0].replaceAll(' ', '').slice(1);
     vars[left] = removePrefix(data[1], ' ');
-    
+
   } else {
     return termError(`Command "${cmd}" not found.\r\n`)
   }
   return true;
 }
 
-function clearLine(nl=true, preset='') {
+function clearLine(nl = true, preset = '') {
   currentLine = '';
   if (nl) term.write('\r\n');
   term.write(`\x1b[1m\x1b[38;5;33m~${currentDir}$ \x1b[0m${preset}`);
@@ -432,7 +434,7 @@ function clearLine(nl=true, preset='') {
 function removePrefix(inputString, prefix) {
   // Create a regular expression with the prefix to match
   const prefixRegex = new RegExp(`^${prefix}`);
-  
+
   // Use replace to remove the prefix
   const result = inputString.replace(prefixRegex, '');
 
@@ -477,7 +479,7 @@ term.onData(data => {
             autoCompleteList.push('./' + relative + i.name);
           }
           autoCompleteList.push(start + i.name);
-          autoCompleteList.push('/'+start + i.name);
+          autoCompleteList.push('/' + start + i.name);
           if (i instanceof Folder)
             check(i, start + i.name + '/');
         }
@@ -485,13 +487,13 @@ term.onData(data => {
       check(getByName(currentDir));
       //restart line [2K\r
       console.log(autoCompleteList);
-      let erase='\b'.repeat(currentLine.length);
+      let erase = '\b'.repeat(currentLine.length);
       for (let i of autoCompleteList) {
         if (i.startsWith(c)) {
           before.push(i);
           currentLine = before.join(' ');
           console.log(`c:${currentLine}`);
-          term.write(erase+currentLine);
+          term.write(erase + currentLine);
           break;
         }
       }
@@ -510,7 +512,7 @@ term.onData(data => {
       } else {
         cmdstr = commandHistory.slice().reverse()[commandCycle - 1];
       }
-      term.write('\b'.repeat(currentLine.length)+cmdstr);
+      term.write('\b'.repeat(currentLine.length) + cmdstr);
       currentLine = cmdstr;
       return;
     }
@@ -523,7 +525,7 @@ term.onData(data => {
       } else {
         cmdstr = commandHistory.slice().reverse()[commandCycle - 1];
       }
-      term.write('\b'.repeat(currentLine.length)+cmdstr);
+      term.write('\b'.repeat(currentLine.length) + cmdstr);
       currentLine = cmdstr;
       return;
     }
