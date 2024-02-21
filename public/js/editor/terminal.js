@@ -14,7 +14,7 @@ TODO:
  - run python in the browser
  etc
 */
-const CODE_EXECUTION_API = "aardvark-py-api.programit.repl.co";
+const CODE_EXECUTION_API = "adk-api.replit.app";
 
 
 const term = new Terminal({
