@@ -72,13 +72,34 @@ function getAdkLanguage() {
     tokenPostfix: '.adk',
 
     keywords: [
-      'break', 'class', 'continue',
-      'do', 'else', 'include',
-      'extending', 'for', 'as', 'function', 'from',
+      'class',
+      'extends',
+      // 'type',
+      'extending',
+      'function',
+      'for',
+      'while',
+      'match',
+      'case',
       'if',
-      'set',
-      'return', 'match', 'while',
-      "and", "xor", "or", "static", "in", "not", "case", "delete", "try", "catch", 'copy', 'ref', 'construct'
+      'else',
+      'return',
+      'static',
+      'include',
+      'await',
+      'pause-until',
+      'yield',
+      'let',
+      'as',
+      'from',
+      'defer',
+      "layout",
+      "break",
+      "continue",
+      "private",
+      "set",
+      "get",
+      "macro"
     ],
 
     typeKeywords: [
@@ -251,7 +272,7 @@ function getAdkLanguage() {
           token: 'regexp.escape.control',
           next: '@pop',
           bracket: '@close'
-        }],
+        }], x
       ],
 
       string_double: [
@@ -633,11 +654,11 @@ function loadAardvark() {
         detail: 'function {name}({params}) {}'
       },
       {
-        label: 'type',
+        label: 'class',
         kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: ['type ${1:name} as this {', '\t$0', '}'].join('\n'),
+        insertText: ['class ${1:name} as this {', '\t$0', '}'].join('\n'),
         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        detail: 'type {name} as this {}'
+        detail: 'class {name} as this {}'
       },
       {
         label: 'ifelse',
@@ -673,7 +694,7 @@ function loadAardvark() {
       //↓ All builtin functions, classes and keywords
       let builtin = {
         Function: {
-          array: ['open', 'min', 'max', 'any', 'all'],
+          array: ['open', 'type_of', 'sequence', 'exit'],
           addition: '()',
           extra: {
             command: {
@@ -684,12 +705,39 @@ function loadAardvark() {
         },
         // ^Builtin Functions
         TypeParameter: {
-          array: ['String', 'Number', 'Array', 'Tuple', 'Set', 'Bitarray', 'Boolean', 'Object', 'File', 'Function', 'Error', 'Integer'],
+          array: ['String', 'Number', 'Array', 'Set', 'Bits', 'Boolean', 'Object', 'File', 'Function'],
           addition: ''
         },
         // ^The above is actually a Class, typeParameter, and Contructor
         Keyword: {
-          array: ['static', 'delete', 'copy', 'ref', 'if', 'else', 'try', 'catch', 'class', 'function', 'get', 'extending', 'as', 'from', 'for', 'while', 'async', 'await', 'xor', 'or', 'and', 'match', 'case', 'not', 'break', 'continue', 'set', 'include', 'extends'],
+          array: ['class',
+            'extends',
+            // # 'type',
+            'extending',
+            'function',
+            'for',
+            'while',
+            'match',
+            'case',
+            'if',
+            'else',
+            'return',
+            'static',
+            'include',
+            'await',
+            'pause-until',
+            'yield',
+            'let',
+            'as',
+            'from',
+            'defer',
+            "layout",
+            "break",
+            "continue",
+            "private",
+            "set",
+            "get",
+            "macro"],
           addition: ' '
         },
         // ^Keywords
@@ -706,9 +754,14 @@ function loadAardvark() {
         Method: {
           array: [
             'stdout.write',
+            'stdout.log',
             'stdin.read',
             'stdin.readline',
             'stdin.prompt',
+            'stderr.write',
+            'stderr.log',
+            'stdout.flush',
+            'stderr.flush',
           ],
           addition: '()',
           extra: {
@@ -759,7 +812,7 @@ function loadAardvark() {
       value = value.replaceAll(/\/\/.*/g, "");
       //^ WORKS because strings are already gone, and // can be anywhere on the line, And it won't replace anything before the //
       //↓ Variable Assignments
-      vars = [...value.matchAll(/set[ \t]+([a-zA-Z_][a-zA-Z0-9_]*)\s*=/gm)];
+      vars = [...value.matchAll(/let[ \t]+([a-zA-Z_][a-zA-Z0-9_]*)\s*=/gm)];
       for (id of vars) {
         id = id[1];
         if (!added.includes(id)) {
@@ -818,36 +871,6 @@ function getAdkExampleCode1() {
   return [
     "stdout.write(\"Hello World!\")"
   ].join("\n");
-}
-
-function getAdkExampleCode2() {
-  return [
-    "",
-    "type Hello as this{",
-    '   function helloWorld() {',
-    "       stdout.write('helloWorld')",
-    "       set i = 0",
-    "       if i = 0 {",
-    "           stdout.write('i is 0!')",
-    "       }",
-    "   }",
-    "}"
-  ].join('\n');
-}
-
-function getAdkExampleCode3() {
-  return [
-    "class Test() {",
-    '   ~init {',
-    "       this.x = 0",
-    "       this.y = 0",
-    "       this.z = 0",
-    "   }",
-    "   funct moveX(amt) {",
-    "       this.x += amt",
-    "   }",
-    "}"
-  ].join('\n');
 }
 var THESE_THEMES = {
   1: {
